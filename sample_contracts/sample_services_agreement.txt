@@ -1,0 +1,86 @@
+MASTER SERVICES AGREEMENT
+
+This Master Services Agreement ("Agreement") is entered into as of March 1, 2025, by and between GlobalTech Solutions, Inc. ("Provider") and MegaCorp Ltd. ("Client"), collectively the "Parties."
+
+RECITALS
+
+WHEREAS, Client desires to engage Provider to perform certain professional services; and
+WHEREAS, Provider desires to perform such services subject to the terms and conditions set forth herein;
+
+NOW, THEREFORE, in consideration of the mutual covenants herein, the Parties agree as follows:
+
+Section 1. Services
+
+1.1 Provider shall perform the services described in one or more Statements of Work ("SOW") executed by both Parties and incorporated herein by reference.
+
+1.2 Provider shall perform all services in a professional and workmanlike manner consistent with industry standards.
+
+Section 2. Compensation
+
+2.1 Client shall pay Provider the fees set forth in each SOW. Payment terms are net thirty (30) days from receipt of invoice.
+
+2.2 Provider shall submit monthly invoices detailing services performed and expenses incurred.
+
+Section 3. Intellectual Property
+
+3.1 All work product, deliverables, and inventions created by Provider in the performance of services under this Agreement shall be the exclusive property of Client. Provider hereby assigns to Client all right, title, and interest in and to such work product.
+
+3.2 Provider retains all rights in its pre-existing intellectual property. To the extent any pre-existing IP is incorporated into deliverables, Provider grants Client a non-exclusive, royalty-free, perpetual license to use such pre-existing IP solely as part of the deliverables.
+
+Section 4. Confidentiality
+
+4.1 Each party agrees to maintain the confidentiality of all proprietary and confidential information received from the other party. Confidential Information shall include, but is not limited to, trade secrets, business plans, customer lists, financial data, and technical specifications.
+
+4.2 The receiving party may disclose Confidential Information only to its employees and contractors who need to know such information and who are bound by confidentiality obligations at least as protective as those in this Agreement.
+
+4.3 The confidentiality obligations under this section shall survive for five (5) years following the termination or expiration of this Agreement.
+
+Section 5. Indemnification
+
+5.1 Provider shall indemnify, defend, and hold harmless Client and its officers, directors, employees, and agents from and against any and all third-party claims, damages, losses, and expenses (including reasonable attorneys' fees) arising out of or related to: (a) Provider's breach of this Agreement; (b) Provider's negligence or willful misconduct; or (c) any claim that the deliverables infringe a third party's intellectual property rights.
+
+5.2 Client shall indemnify and hold harmless Provider from and against any claims arising from Client's use of the deliverables in a manner not authorized by this Agreement.
+
+Section 6. Limitation of Liability
+
+6.1 EXCEPT FOR OBLIGATIONS UNDER SECTION 5 (INDEMNIFICATION), NEITHER PARTY SHALL BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, REGARDLESS OF THE CAUSE OF ACTION.
+
+6.2 EACH PARTY'S TOTAL AGGREGATE LIABILITY UNDER THIS AGREEMENT SHALL NOT EXCEED THE TOTAL AMOUNTS PAID BY CLIENT TO PROVIDER DURING THE SIX (6) MONTH PERIOD PRECEDING THE CLAIM.
+
+Section 7. Termination
+
+7.1 Either party may terminate this Agreement for convenience upon sixty (60) days' prior written notice to the other party.
+
+7.2 Either party may terminate this Agreement immediately upon written notice if the other party materially breaches any provision of this Agreement and fails to cure such breach within thirty (30) days after receiving written notice of such breach.
+
+7.3 Upon termination, Client shall pay all fees for services rendered through the effective date of termination.
+
+Section 8. Data Protection
+
+8.1 Provider shall comply with all applicable data protection laws, including the California Consumer Privacy Act (CCPA), in connection with any personal data processed in the performance of services.
+
+8.2 Provider shall implement and maintain appropriate technical and organizational measures to protect personal data against unauthorized access, loss, or destruction.
+
+8.3 Upon request, Provider shall enter into a Data Processing Agreement (DPA) as required by applicable law.
+
+Section 9. Force Majeure
+
+9.1 Neither party shall be liable for failure to perform its obligations under this Agreement if such failure results from circumstances beyond the party's reasonable control, including acts of God, natural disasters, war, terrorism, or government actions.
+
+9.2 The affected party shall provide notice within five (5) business days of the force majeure event and shall use commercially reasonable efforts to resume performance.
+
+Section 10. Governing Law
+
+10.1 This Agreement shall be governed by and construed in accordance with the laws of the State of New York, without regard to conflict of laws principles.
+
+10.2 Any dispute arising under this Agreement shall be resolved through binding arbitration in New York City, administered by the American Arbitration Association.
+
+Section 11. General Provisions
+
+11.1 This Agreement, together with all SOWs, constitutes the entire agreement between the Parties.
+
+11.2 Neither party may assign this Agreement without the prior written consent of the other party.
+
+11.3 If any provision of this Agreement is found to be unenforceable, the remaining provisions shall continue in full force and effect.
+
+IN WITNESS WHEREOF, the Parties have executed this Agreement as of the date first written above.

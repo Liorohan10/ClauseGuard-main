@@ -1,0 +1,36 @@
+{
+  "id": "chatcmpl-DopLj5I9UpS8kDrOjy1t0fz4KDAQk",
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "logprobs": null,
+      "message": {
+        "content": "{\n  \"items\": [\n    {\n      \"clause_text\": \"Upon the termination or expiration of this Agreement, the Developer is under no obligation to return or destroy the Company's data. The Developer may retain all Company data and personal information indefinitely on its servers for internal historical archiving, system analytics, and training future machine learning models.\",\n      \"clause_name\": \"Data Retention\",\n      \"clause_type\": \"data_protection\",\n      \"summary\": \"The Developer can retain Company data indefinitely after the agreement ends.\",\n      \"risk_level\": \"high\",\n      \"impact\": \"Potential risk of data misuse or breach due to indefinite retention of sensitive data.\",\n      \"recommendations\": [\n        \"Negotiate a clause that requires the Developer to return or destroy data upon termination.\",\n        \"Implement strict data handling and retention policies.\"\n      ],\n      \"confidence\": 0.9\n    },\n    {\n      \"clause_text\": \"In the event that the Developer becomes aware of any accidental or unlawful destruction, loss, alteration, or unauthorized disclosure of personal data (a 'Data Breach'), the Developer shall notify the Company as soon as administratively convenient, but in no event later than 45 days after the Developer has fully investigated and confirmed the scope of the breach.\",\n      \"clause_name\": \"Data Breach Notification\",\n      \"clause_type\": \"data_protection\",\n      \"summary\": \"The Developer must notify the Company of a data breach within 45 days.\",\n      \"risk_level\": \"medium\",\n      \"impact\": \"Delay in notification could lead to increased liability and reputational damage.\",\n      \"recommendations\": [\n        \"Shorten the notification period to within 24 hours.\",\n        \"Establish a clear communication protocol for breach notifications.\"\n      ],\n      \"confidence\": 0.85\n    }\n  ]\n}",
+        "refusal": null,
+        "role": "assistant",
+        "annotations": []
+      }
+    }
+  ],
+  "created": 1781006159,
+  "model": "gpt-4o-mini-2024-07-18",
+  "object": "chat.completion",
+  "service_tier": "default",
+  "system_fingerprint": "fp_f8d40babb7",
+  "usage": {
+    "completion_tokens": 375,
+    "prompt_tokens": 945,
+    "total_tokens": 1320,
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    },
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    }
+  }
+}

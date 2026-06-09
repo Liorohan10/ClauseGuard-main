@@ -1,0 +1,36 @@
+{
+  "id": "chatcmpl-DopgCgD6yVwtHwqaDMpoX7Sgn9iJQ",
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "logprobs": null,
+      "message": {
+        "content": "{\n  \"items\": [\n    {\n      \"requirement\": \"Data Security and Confidentiality\",\n      \"status\": \"fail\",\n      \"severity\": \"high\",\n      \"explanation\": \"The contract does not explicitly address data security measures or confidentiality obligations regarding the handling of sensitive information during the software development process.\",\n      \"evidence\": [\n        \"The Phase Agreement will also have the following items attached thereto: The Functional Specifications which is a narrative explanation of the operation of the programs, containing Exhibits of all screen and reports.\",\n        \"Developer shall provide and deliver to Company custom software in regards thereto as outlined in Clause 3.\"\n      ],\n      \"remediation\": \"Include a section in the contract that outlines specific data security measures and confidentiality obligations for both parties.\",\n      \"source_page\": 1,\n      \"source_section\": \"4.5\",\n      \"source_clause_id\": \"d5e929d7-99a3-489a-91ef-b7ed920bea0c\",\n      \"source_excerpt\": \"The Phase Agreement will also have the following items attached thereto: The Functional Specifications which is a narrative explanation of the operation of the programs, containing Exhibits of all screen and reports.\",\n      \"confidence\": 0.8\n    },\n    {\n      \"requirement\": \"Privacy Compliance\",\n      \"status\": \"fail\",\n      \"severity\": \"high\",\n      \"explanation\": \"The contract lacks provisions for compliance with applicable privacy laws and regulations, which is critical when handling personal data.\",\n      \"evidence\": [\n        \"Developer shall develop custom software which will modify, customize, amend, enhance or otherwise change the following pre-existing Developer software packages to fulfill the requirements of Company.\"\n      ],\n      \"remediation\": \"Add clauses that ensure compliance with relevant privacy laws (e.g., GDPR, CCPA) and outline the responsibilities of both parties regarding personal data.\",\n      \"source_page\": 1,\n      \"source_section\": \"3.1\",\n      \"source_clause_id\": \"2a17cc1f-67e3-4401-96de-60bbd671b693\",\n      \"source_excerpt\": \"Developer shall develop custom software which will modify, customize, amend, enhance or otherwise change the following pre-existing Developer software packages to fulfill the requirements of Company.\",\n      \"confidence\": 0.75\n    },\n    {\n      \"requirement\": \"Audit Rights\",\n      \"status\": \"fail\",\n      \"severity\": \"medium\",\n      \"explanation\": \"The contract does not provide for audit rights, which would allow the Company to verify compliance with the terms of the agreement, especially regarding data handling and security.\",\n      \"evidence\": [\n        \"Upon delivery, Company shall conduct the acceptance test that was created by the parties.\"\n      ],\n      \"remediation\": \"Include a clause that grants the Company the right to audit the Developer's compliance with the contract terms and applicable laws.\",\n      \"source_page\": 1,\n      \"source_section\": \"4.10\",\n      \"source_clause_id\": \"6b5d6aad-b79b-42b2-b348-0977f0034c3c\",\n      \"source_excerpt\": \"Upon delivery, Company shall conduct the acceptance test that was created by the parties.\",\n      \"confidence\": 0.7\n    },\n    {\n      \"requirement\": \"Data Retention\",\n      \"status\": \"fail\",\n      \"severity\": \"medium\",\n      \"explanation\": \"The contract does not specify data retention policies, including how long data will be retained and the process for data disposal after the contract ends.\",\n      \"evidence\": [\n        \"In the event that Developer fails to deliver the completed programs \u2026\u2026\u2026..[insert number] months after the original delivery date, and the delivery date was not modified, Company may cancel that Phase Agreement.\"\n      ],\n      \"remediation\": \"Add a data retention policy that specifies how long data will be retained and the procedures for secure data disposal.\",\n      \"source_page\": 1,\n      \"source_section\": \"4.9\",\n      \"source_clause_id\": \"1d3092a3-4144-4005-a6d7-edb54adbe06f\",\n      \"source_excerpt\": \"In the event that Developer fails to deliver the completed programs \u2026\u2026\u2026..[insert number] months after the original delivery date, and the delivery date was not modified, Company may cancel that Phase Agreement.\",\n      \"confidence\": 0.65\n    }\n  ]\n}",
+        "refusal": null,
+        "role": "assistant",
+        "annotations": []
+      }
+    }
+  ],
+  "created": 1781007428,
+  "model": "gpt-4o-mini-2024-07-18",
+  "object": "chat.completion",
+  "service_tier": "default",
+  "system_fingerprint": "fp_032c106278",
+  "usage": {
+    "completion_tokens": 928,
+    "prompt_tokens": 4212,
+    "total_tokens": 5140,
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    },
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    }
+  }
+}

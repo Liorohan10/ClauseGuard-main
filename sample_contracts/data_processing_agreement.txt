@@ -1,0 +1,118 @@
+DATA PROCESSING AGREEMENT
+
+This Data Processing Agreement ("DPA") is entered into as of April 10, 2025, by and between Zenith Financial Services, Inc., a New York corporation ("Controller"), and SecureVault Cloud Solutions Ltd., a company incorporated in Ireland ("Processor").
+
+This DPA supplements the Master Services Agreement dated January 5, 2025 between the Parties (the "Principal Agreement") and governs the processing of personal data by Processor on behalf of Controller.
+
+Section 1. Definitions
+
+1.1 "Personal Data" means any information relating to an identified or identifiable natural person, as defined under the General Data Protection Regulation (EU) 2016/679 ("GDPR") and the California Consumer Privacy Act ("CCPA").
+
+1.2 "Processing" means any operation performed on Personal Data, including collection, recording, organization, structuring, storage, adaptation, retrieval, consultation, use, disclosure, dissemination, alignment, combination, restriction, erasure, and destruction.
+
+1.3 "Data Subject" means an identified or identifiable natural person to whom Personal Data relates.
+
+1.4 "Sub-processor" means any entity engaged by Processor to process Personal Data on behalf of Controller.
+
+Section 2. Scope and Purpose of Processing
+
+2.1 Processor shall process Personal Data solely for the purpose of providing cloud infrastructure and data management services under the Principal Agreement.
+
+2.2 The categories of Personal Data processed include: customer names, email addresses, phone numbers, financial account information, transaction records, and government-issued identification numbers.
+
+2.3 The categories of Data Subjects include: Controller's customers, employees, contractors, and business partners.
+
+2.4 Processing shall continue for the duration of the Principal Agreement unless earlier terminated in accordance with this DPA.
+
+Section 3. Obligations of the Processor
+
+3.1 Processor shall process Personal Data only on documented instructions from Controller, unless required to do so by applicable law.
+
+3.2 Processor shall ensure that all personnel authorized to process Personal Data have committed themselves to confidentiality or are under an appropriate statutory obligation of confidentiality.
+
+3.3 Processor shall implement and maintain appropriate technical and organizational measures to ensure a level of security appropriate to the risk, including:
+(a) Encryption of Personal Data at rest using AES-256 and in transit using TLS 1.3;
+(b) Regular testing and evaluation of security measures;
+(c) Ability to ensure ongoing confidentiality, integrity, availability, and resilience of processing systems;
+(d) Ability to restore access to Personal Data in a timely manner following a physical or technical incident;
+(e) Multi-factor authentication for all administrative access;
+(f) Continuous intrusion detection and prevention systems.
+
+3.4 Processor shall maintain ISO 27001 and SOC 2 Type II certifications throughout the term of this DPA.
+
+3.5 Processor shall make available to Controller all information necessary to demonstrate compliance with this DPA and shall allow for and contribute to audits conducted by Controller or an independent auditor appointed by Controller.
+
+Section 4. Sub-processing
+
+4.1 Processor shall not engage any Sub-processor without prior written authorization from Controller. Controller hereby provides general authorization for Processor to engage the Sub-processors listed in Exhibit A.
+
+4.2 Processor shall impose on each Sub-processor data protection obligations no less protective than those set out in this DPA.
+
+4.3 Processor shall notify Controller in writing at least thirty (30) days prior to any intended changes concerning the addition or replacement of Sub-processors, giving Controller the opportunity to object.
+
+4.4 Processor shall remain fully liable for the acts and omissions of its Sub-processors.
+
+Section 5. Data Subject Rights
+
+5.1 Processor shall, taking into account the nature of the Processing, assist Controller by appropriate technical and organizational measures for the fulfillment of Controller's obligation to respond to Data Subject requests exercising their rights under applicable data protection law.
+
+5.2 Processor shall promptly notify Controller upon receiving a request from a Data Subject and shall not respond to such requests directly unless instructed by Controller.
+
+Section 6. Data Breach Notification
+
+6.1 Processor shall notify Controller without undue delay, and in any event within thirty-six (36) hours, after becoming aware of a Personal Data breach.
+
+6.2 Such notification shall include: (a) a description of the nature of the breach, including categories and approximate number of Data Subjects affected; (b) the likely consequences of the breach; (c) a description of the measures taken or proposed to address the breach; and (d) the name and contact details of Processor's data protection officer.
+
+6.3 Processor shall cooperate with Controller in investigating the breach, mitigating its effects, and fulfilling any legal notification requirements.
+
+Section 7. International Data Transfers
+
+7.1 Processor shall not transfer Personal Data outside the European Economic Area ("EEA") without ensuring appropriate safeguards are in place, including:
+(a) Standard Contractual Clauses approved by the European Commission;
+(b) Binding Corporate Rules; or
+(c) An adequacy decision by the European Commission.
+
+7.2 Where transfers are made to the United States, the Parties shall implement supplementary measures as necessary following the requirements of the Schrems II decision.
+
+Section 8. Indemnification
+
+8.1 Processor shall indemnify and hold harmless Controller from and against any and all claims, fines, penalties, damages, losses, costs, and expenses (including reasonable legal fees) arising from or in connection with: (a) Processor's breach of this DPA; (b) Processor's violation of applicable data protection law; (c) any data breach caused by Processor's failure to maintain adequate security measures; or (d) the acts or omissions of Processor's Sub-processors.
+
+8.2 This indemnification obligation is in addition to, and not in limitation of, any other indemnification obligations in the Principal Agreement.
+
+Section 9. Limitation of Liability
+
+9.1 PROCESSOR'S TOTAL LIABILITY UNDER THIS DPA FOR ALL CLAIMS SHALL NOT EXCEED THREE TIMES (3x) THE ANNUAL FEES PAID UNDER THE PRINCIPAL AGREEMENT.
+
+9.2 THE FOREGOING LIMITATION SHALL NOT APPLY TO: (A) PROCESSOR'S INDEMNIFICATION OBLIGATIONS FOR DATA BREACHES CAUSED BY PROCESSOR'S GROSS NEGLIGENCE OR WILLFUL MISCONDUCT; (B) REGULATORY FINES IMPOSED DIRECTLY ON CONTROLLER AS A RESULT OF PROCESSOR'S BREACH OF THIS DPA; OR (C) FRAUDULENT ACTS.
+
+Section 10. Term and Termination
+
+10.1 This DPA shall remain in effect for the duration of the Principal Agreement.
+
+10.2 Controller may terminate this DPA immediately if Processor fails to comply with its obligations hereunder and does not cure such failure within fourteen (14) days of receiving written notice.
+
+10.3 Upon termination, Processor shall at Controller's election: (a) return all Personal Data to Controller in a structured, commonly used, machine-readable format; or (b) securely delete all Personal Data and certify such deletion in writing. This obligation shall be fulfilled within thirty (30) days of termination.
+
+10.4 Processor may retain Personal Data to the extent required by applicable law, in which case Processor shall continue to ensure compliance with this DPA with respect to such retained data.
+
+Section 11. Governing Law
+
+11.1 This DPA shall be governed by and construed in accordance with the laws of Ireland, without regard to its conflict of laws provisions.
+
+11.2 For disputes relating to GDPR obligations, the courts of Dublin, Ireland shall have exclusive jurisdiction.
+
+11.3 For disputes relating to CCPA obligations or other U.S. data protection requirements, the state or federal courts of New York, New York shall have exclusive jurisdiction.
+
+Section 12. General Provisions
+
+12.1 In the event of any conflict between this DPA and the Principal Agreement, this DPA shall prevail with respect to matters of data protection.
+
+12.2 This DPA may be amended only by written instrument signed by authorized representatives of both Parties.
+
+12.3 If any provision of this DPA is found to be invalid, the remaining provisions shall remain in full force and effect.
+
+12.4 Controller may exercise audit rights under Section 3.5 no more than once per year, with at least thirty (30) days' advance written notice, during Processor's regular business hours.
+
+IN WITNESS WHEREOF, the Parties have executed this DPA as of the date first written above.

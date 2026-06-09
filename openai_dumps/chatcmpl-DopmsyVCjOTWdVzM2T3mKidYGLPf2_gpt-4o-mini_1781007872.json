@@ -1,0 +1,36 @@
+{
+  "id": "chatcmpl-DopmsyVCjOTWdVzM2T3mKidYGLPf2",
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "logprobs": null,
+      "message": {
+        "content": "{\n  \"items\": [\n    {\n      \"clause_text\": \"The Phase Agreement shall contain the following:  a) The fixed price for the Phase.\",\n      \"clause_name\": \"Fixed Price Clause\",\n      \"clause_type\": \"payment\",\n      \"summary\": \"Defines the fixed price for the services provided in the Phase Agreement.\",\n      \"risk_level\": \"medium\",\n      \"impact\": \"Establishes clear financial expectations but may limit flexibility in pricing.\",\n      \"recommendations\": [\n        \"Ensure the fixed price is competitive and reflects the scope of work.\",\n        \"Consider including provisions for price adjustments based on scope changes.\"\n      ],\n      \"source_page\": 1,\n      \"source_section\": \"4.4\",\n      \"source_clause_id\": \"4b079867-40c7-41c1-a6a6-f9e9534fc627\",\n      \"source_excerpt\": \"The Phase Agreement shall contain the following:  a) The fixed price for the Phase.\",\n      \"confidence\": 0.9\n    },\n    {\n      \"clause_text\": \"For delivery on or before the delivery date specified in the Phase Agreement, Company shall pay to Developer \u2026\u2026\u2026 [insert number] % of the price for that Phase.\",\n      \"clause_name\": \"Payment Terms Clause\",\n      \"clause_type\": \"payment\",\n      \"summary\": \"Outlines payment terms contingent on timely delivery of services.\",\n      \"risk_level\": \"medium\",\n      \"impact\": \"Ensures Developer is incentivized to meet deadlines but may create cash flow issues if delays occur.\",\n      \"recommendations\": [\n        \"Specify the percentage clearly and consider including penalties for late delivery.\",\n        \"Define what constitutes timely delivery to avoid disputes.\"\n      ],\n      \"source_page\": 1,\n      \"source_section\": \"4.7\",\n      \"source_clause_id\": \"ca82a980-4f6d-4df8-9bde-a0a43a31b0d4\",\n      \"source_excerpt\": \"For delivery on or before the delivery date specified in the Phase Agreement, Company shall pay to Developer \u2026\u2026\u2026 [insert number] % of the price for that Phase.\",\n      \"confidence\": 0.85\n    },\n    {\n      \"clause_text\": \"In the event that Developer fails to deliver the completed programs \u2026\u2026\u2026..[insert number] months after the original delivery date, and the delivery date was not modified, Company may cancel that Phase Agreement.\",\n      \"clause_name\": \"Termination Clause\",\n      \"clause_type\": \"termination\",\n      \"summary\": \"Allows Company to cancel the Phase Agreement if Developer fails to deliver on time.\",\n      \"risk_level\": \"high\",\n      \"impact\": \"Provides a clear exit strategy but may lead to disputes over what constitutes a failure to deliver.\",\n      \"recommendations\": [\n        \"Define the timeline clearly and consider including a grace period for unforeseen delays.\",\n        \"Establish a clear process for cancellation to minimize disputes.\"\n      ],\n      \"source_page\": 1,\n      \"source_section\": \"4.9\",\n      \"source_clause_id\": \"fbca1200-9bae-4a0a-8990-7b76afcf59c1\",\n      \"source_excerpt\": \"In the event that Developer fails to deliver the completed programs \u2026\u2026\u2026..[insert number] months after the original delivery date, and the delivery date was not modified, Company may cancel that Phase Agreement.\",\n      \"confidence\": 0.9\n    },\n    {\n      \"clause_text\": \"If the programs fail to perform the acceptance tests, the parties shall follow this procedure: a) Company shall immediately notify Developer by telephone of the failure of the test.\",\n      \"clause_name\": \"Acceptance Testing Clause\",\n      \"clause_type\": \"other\",\n      \"summary\": \"Establishes a procedure for notifying Developer of acceptance test failures.\",\n      \"risk_level\": \"medium\",\n      \"impact\": \"Clarifies the process for addressing performance issues but may lead to delays in resolution.\",\n      \"recommendations\": [\n        \"Consider formalizing the notification process in writing to ensure clarity.\",\n        \"Define the timeline for remediation of failures.\"\n      ],\n      \"source_page\": 1,\n      \"source_section\": \"4.12\",\n      \"source_clause_id\": \"ed4aebb9-d94a-4b78-9864-86f4ebef5d61\",\n      \"source_excerpt\": \"If the programs fail to perform the acceptance tests, the parties shall follow this procedure: a) Company shall immediately notify Developer by telephone of the failure of the test.\",\n      \"confidence\": 0.85\n    },\n    {\n      \"clause_text\": \"Upon receipt of said programming specifications, Company will either approve or disapprove of said specifications. Such approval will be at the sole discretion of Company.\",\n      \"clause_name\": \"Approval Clause\",\n      \"clause_type\": \"other\",\n      \"summary\": \"Gives Company sole discretion over the approval of programming specifications.\",\n      \"risk_level\": \"medium\",\n      \"impact\": \"Ensures Company has control over project direction but may lead to delays if approvals are not timely.\",\n      \"recommendations\": [\n        \"Set a timeline for approvals to avoid project delays.\",\n        \"Consider including criteria for approval to ensure clarity.\"\n      ],\n      \"source_page\": 1,\n      \"source_section\": \"4.3\",\n      \"source_clause_id\": \"dbf855ba-d2d0-4e02-9211-1f306b7643e2\",\n      \"source_excerpt\": \"Upon receipt of said programming specifications, Company will either approve or disapprove of said specifications. Such approval will be at the sole discretion of Company.\",\n      \"confidence\": 0.8\n    }\n  ]\n}",
+        "refusal": null,
+        "role": "assistant",
+        "annotations": []
+      }
+    }
+  ],
+  "created": 1781007842,
+  "model": "gpt-4o-mini-2024-07-18",
+  "object": "chat.completion",
+  "service_tier": "default",
+  "system_fingerprint": "fp_2d3cd316d9",
+  "usage": {
+    "completion_tokens": 1203,
+    "prompt_tokens": 2181,
+    "total_tokens": 3384,
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    },
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 1920
+    }
+  }
+}

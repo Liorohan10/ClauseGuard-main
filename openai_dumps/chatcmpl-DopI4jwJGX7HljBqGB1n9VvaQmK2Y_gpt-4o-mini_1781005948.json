@@ -1,0 +1,36 @@
+{
+  "id": "chatcmpl-DopI4jwJGX7HljBqGB1n9VvaQmK2Y",
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "logprobs": null,
+      "message": {
+        "content": "{\n  \"items\": [\n    {\n      \"clause_text\": \"In the event that Developer fails to deliver the completed programs \u2026\u2026\u2026..[insert number] months after the original delivery date, and the delivery date was not modified, Company may cancel that Phase Agreement.\",\n      \"clause_name\": \"Termination for Non-Delivery\",\n      \"clause_type\": \"termination\",\n      \"summary\": \"Allows Company to cancel the Phase Agreement if Developer fails to deliver completed programs within a specified timeframe.\",\n      \"risk_level\": \"high\",\n      \"impact\": \"Potential loss of investment and project delays for Company.\",\n      \"recommendations\": [\n        \"Define clear delivery timelines and penalties for delays.\",\n        \"Ensure that the cancellation process is well-documented.\"\n      ],\n      \"confidence\": 0.9\n    },\n    {\n      \"clause_text\": \"Failure by Developer to deliver the completed programming by the end of the \u2026\u2026\u2026\u2026 [insert number] days after the delivery date specified in the Phase Agreement will entitle Company to a \u2026\u2026. [insert number] % reduction in the cost of the entire Phase for each \u2026\u2026. [insert number] day period in which Developer is late.\",\n      \"clause_name\": \"Penalty for Late Delivery\",\n      \"clause_type\": \"liability\",\n      \"summary\": \"Imposes financial penalties on Developer for late delivery of programming.\",\n      \"risk_level\": \"medium\",\n      \"impact\": \"Encourages timely delivery but may lead to disputes over penalties.\",\n      \"recommendations\": [\n        \"Clearly define the penalty percentages and grace periods.\",\n        \"Establish a dispute resolution mechanism for penalty disputes.\"\n      ],\n      \"confidence\": 0.85\n    },\n    {\n      \"clause_text\": \"Upon passing the acceptance test, Company shall pay to Developer an additional \u2026\u2026. [insert number] % of the price of the phase.\",\n      \"clause_name\": \"Payment Upon Acceptance\",\n      \"clause_type\": \"payment\",\n      \"summary\": \"Specifies payment terms contingent upon successful acceptance testing of the software.\",\n      \"risk_level\": \"medium\",\n      \"impact\": \"Aligns Developer's incentives with successful delivery but may delay final payment.\",\n      \"recommendations\": [\n        \"Ensure acceptance criteria are clearly defined.\",\n        \"Document the acceptance testing process thoroughly.\"\n      ],\n      \"confidence\": 0.8\n    },\n    {\n      \"clause_text\": \"If the programs fail to perform the acceptance tests, the parties shall follow this procedure: a) Company shall immediately notify Developer by telephone of the failure of the test.\",\n      \"clause_name\": \"Acceptance Test Failure Procedure\",\n      \"clause_type\": \"dispute resolution\",\n      \"summary\": \"Outlines the procedure to follow if the software fails acceptance testing.\",\n      \"risk_level\": \"medium\",\n      \"impact\": \"Provides a clear process for addressing failures but may lead to delays.\",\n      \"recommendations\": [\n        \"Clarify timelines for notification and remediation.\",\n        \"Consider including escalation procedures for unresolved issues.\"\n      ],\n      \"confidence\": 0.75\n    },\n    {\n      \"clause_text\": \"Upon receipt of said programming specifications, Company will either approve or disapprove of said specifications. Such approval will be at the sole discretion of Company.\",\n      \"clause_name\": \"Approval of Specifications\",\n      \"clause_type\": \"ownership\",\n      \"summary\": \"Grants Company the sole discretion to approve or disapprove programming specifications.\",\n      \"risk_level\": \"medium\",\n      \"impact\": \"Empowers Company but may lead to delays if specifications are not approved promptly.\",\n      \"recommendations\": [\n        \"Set timelines for approval to avoid project delays.\",\n        \"Encourage collaborative specification development.\"\n      ],\n      \"confidence\": 0.8\n    },\n    {\n      \"clause_text\": \"The Phase Agreement shall contain the following: a) The fixed price for the Phase.\",\n      \"clause_name\": \"Fixed Price Agreement\",\n      \"clause_type\": \"payment\",\n      \"summary\": \"Establishes a fixed price for the services outlined in the Phase Agreement.\",\n      \"risk_level\": \"low\",\n      \"impact\": \"Provides cost certainty for Company but may limit Developer's flexibility.\",\n      \"recommendations\": [\n        \"Ensure that the fixed price reflects all potential costs.\",\n        \"Consider including provisions for scope changes.\"\n      ],\n      \"confidence\": 0.85\n    }\n  ]\n}",
+        "refusal": null,
+        "role": "assistant",
+        "annotations": []
+      }
+    }
+  ],
+  "created": 1781005932,
+  "model": "gpt-4o-mini-2024-07-18",
+  "object": "chat.completion",
+  "service_tier": "default",
+  "system_fingerprint": "fp_f8d40babb7",
+  "usage": {
+    "completion_tokens": 911,
+    "prompt_tokens": 1803,
+    "total_tokens": 2714,
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    },
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    }
+  }
+}

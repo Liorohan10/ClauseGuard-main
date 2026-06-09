@@ -1,0 +1,108 @@
+ENTERPRISE SOFTWARE LICENSE AGREEMENT
+
+This Enterprise Software License Agreement ("Agreement") is entered into as of November 1, 2025, by and between Ironclad Software, Inc., a Texas corporation ("Licensor"), and Meridian Healthcare Group ("Licensee").
+
+RECITALS
+
+WHEREAS, Licensor develops and licenses proprietary healthcare compliance management software; and
+WHEREAS, Licensee desires to obtain an enterprise license to use such software;
+
+NOW, THEREFORE, in consideration of the mutual promises herein, the Parties agree as follows:
+
+Section 1. License Grant
+
+1.1 Subject to the terms of this Agreement and payment of applicable fees, Licensor grants Licensee a non-exclusive, non-transferable, non-sublicensable license to install and use the software identified in Exhibit A ("Software") solely for Licensee's internal business operations at the locations specified in the Order Form.
+
+1.2 The license includes access to standard documentation, online knowledge base, and up to five hundred (500) named users. Additional user licenses may be purchased at Licensor's then-current list price.
+
+1.3 Licensee shall not: (a) reverse engineer, decompile, or disassemble the Software; (b) create derivative works based on the Software; (c) sublicense, sell, or distribute the Software to any third party; (d) remove any proprietary notices from the Software; or (e) use the Software to provide services to third parties.
+
+Section 2. Support and Maintenance
+
+2.1 During the Subscription Term, Licensor shall provide Licensee with standard support and maintenance services ("Support"), including bug fixes, patches, and minor version updates.
+
+2.2 Support requests shall be submitted through Licensor's support portal. Licensor shall respond to critical severity issues within four (4) hours and high severity issues within eight (8) hours during business hours (Monday-Friday, 8:00 AM - 8:00 PM CST).
+
+2.3 Major version upgrades are not included in standard Support and may require additional licensing fees.
+
+Section 3. Fees and Payment
+
+3.1 Licensee shall pay the annual license and support fees set forth in the Order Form. All fees are non-refundable and due within thirty (30) days of the invoice date.
+
+3.2 Licensor reserves the right to suspend Licensee's access to the Software if any undisputed payment is more than forty-five (45) days overdue.
+
+Section 4. Confidentiality
+
+4.1 Each party may disclose Confidential Information to the other in connection with this Agreement. "Confidential Information" means all non-public information disclosed by one party to the other that is identified as confidential or that the receiving party knows or should reasonably know is confidential.
+
+4.2 The receiving party agrees to: (a) use at least the same degree of care to protect the disclosing party's Confidential Information as it uses to protect its own, and in no event less than reasonable care; (b) limit access to Confidential Information to employees and agents with a need to know; and (c) not disclose Confidential Information to third parties without prior written consent.
+
+4.3 These obligations shall not apply to information that is: (i) publicly available; (ii) rightfully known by the receiving party; (iii) independently developed; or (iv) disclosed pursuant to a legal requirement with reasonable notice.
+
+4.4 The confidentiality obligations in this Section shall continue for three (3) years after the termination or expiration of this Agreement.
+
+Section 5. Data Protection and Security
+
+5.1 The Parties acknowledge that Licensee will process Protected Health Information ("PHI") using the Software. Licensor shall comply with the Health Insurance Portability and Accountability Act ("HIPAA") and shall execute a Business Associate Agreement ("BAA") as attached in Exhibit C.
+
+5.2 Licensor shall implement administrative, physical, and technical safeguards consistent with industry standards and applicable law to protect all data processed through the Software.
+
+5.3 Licensor shall maintain SOC 2 Type II and HITRUST CSF certifications throughout the term of this Agreement.
+
+5.4 Licensor shall comply with the GDPR with respect to any personal data of EU residents processed in connection with this Agreement. Data Processing Agreement terms are incorporated by reference in Exhibit D.
+
+5.5 In the event of a security incident affecting Licensee's data, Licensor shall: (a) notify Licensee within twenty-four (24) hours of discovery; (b) take immediate steps to contain and investigate the incident; (c) provide regular status updates; and (d) cooperate with Licensee's incident response procedures.
+
+Section 6. Indemnification
+
+6.1 Licensor shall indemnify, defend, and hold harmless Licensee, its affiliates, and their respective officers, directors, employees, and agents ("Licensee Indemnitees") from and against any claims, damages, losses, costs, and expenses (including attorneys' fees) arising from: (a) any allegation that the Software infringes a third party's patent, copyright, trademark, or trade secret; (b) Licensor's breach of the data protection obligations in Section 5; or (c) Licensor's willful misconduct.
+
+6.2 If the Software becomes the subject of an infringement claim, Licensor shall at its option and expense: (i) procure for Licensee the right to continue using the Software; (ii) modify the Software to make it non-infringing while maintaining substantially equivalent functionality; or (iii) replace the Software with a non-infringing alternative. If none of the foregoing is commercially practicable, Licensor may terminate the license and refund a pro-rata portion of prepaid fees.
+
+6.3 Licensee shall indemnify Licensor from claims arising from Licensee's use of the Software in violation of this Agreement or applicable law, or from data provided by Licensee that infringes third-party rights.
+
+Section 7. Limitation of Liability
+
+7.1 TO THE MAXIMUM EXTENT PERMITTED BY LAW, NEITHER PARTY SHALL BE LIABLE FOR ANY LOSS OF PROFITS, REVENUE, DATA, OR BUSINESS OPPORTUNITIES, OR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR EXEMPLARY DAMAGES ARISING FROM THIS AGREEMENT.
+
+7.2 LICENSOR'S TOTAL AGGREGATE LIABILITY UNDER THIS AGREEMENT SHALL NOT EXCEED THE GREATER OF: (A) THE TOTAL FEES PAID BY LICENSEE DURING THE TWELVE (12) MONTHS PRECEDING THE CLAIM; OR (B) ONE MILLION DOLLARS ($1,000,000).
+
+7.3 THE FOREGOING LIMITATIONS SHALL NOT APPLY TO: (A) BREACHES OF SECTION 4 (CONFIDENTIALITY) OR SECTION 5 (DATA PROTECTION); (B) INDEMNIFICATION OBLIGATIONS UNDER SECTION 6; OR (C) DAMAGES ARISING FROM A PARTY'S GROSS NEGLIGENCE OR WILLFUL MISCONDUCT.
+
+Section 8. Term and Termination
+
+8.1 The initial term of this Agreement shall be three (3) years from the Effective Date ("Initial Term"). Thereafter, this Agreement shall automatically renew for successive one-year periods unless either party provides written notice of non-renewal at least ninety (90) days before the end of the then-current term.
+
+8.2 Either party may terminate for cause upon written notice if the other party materially breaches this Agreement and fails to cure such breach within thirty (30) days of receiving detailed written notice.
+
+8.3 Either party may terminate immediately if the other party ceases business operations, becomes insolvent, or files for bankruptcy.
+
+8.4 Upon termination: (a) all license rights shall immediately cease; (b) Licensee shall uninstall and cease use of the Software within thirty (30) days; (c) Licensor shall provide Licensee's data in a standard export format for ninety (90) days post-termination; and (d) each party shall return or destroy the other's Confidential Information.
+
+Section 9. Governing Law and Dispute Resolution
+
+9.1 This Agreement shall be governed by the laws of the State of Texas, without regard to conflict of law provisions.
+
+9.2 The Parties agree to first attempt to resolve any dispute through good-faith negotiation for a period of thirty (30) days. If negotiation fails, disputes shall be resolved by binding arbitration in Austin, Texas, under the Commercial Arbitration Rules of the American Arbitration Association.
+
+9.3 Notwithstanding the foregoing, either party may seek injunctive or equitable relief in any court of competent jurisdiction to protect its intellectual property rights or Confidential Information.
+
+Section 10. Warranties
+
+10.1 Licensor warrants that: (a) the Software shall perform materially in accordance with the documentation for a period of ninety (90) days from delivery; (b) it has the right to grant the license herein; and (c) to its knowledge, the Software does not contain any malicious code.
+
+10.2 EXCEPT AS EXPRESSLY SET FORTH HEREIN, THE SOFTWARE IS PROVIDED "AS IS." LICENSOR DISCLAIMS ALL OTHER WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+
+Section 11. General Provisions
+
+11.1 This Agreement constitutes the entire agreement between the Parties and supersedes all prior and contemporaneous agreements and communications.
+
+11.2 This Agreement may be amended only by written instrument signed by both Parties.
+
+11.3 Neither party may assign this Agreement without prior written consent, except to an affiliate or in connection with a merger or acquisition.
+
+11.4 All notices shall be in writing and deemed received upon delivery by confirmed email, recognized overnight courier, or certified mail.
+
+11.5 No waiver of any breach shall constitute a waiver of any subsequent breach.
+
+IN WITNESS WHEREOF, the Parties have executed this Agreement as of the Effective Date.

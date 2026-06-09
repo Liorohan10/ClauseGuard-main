@@ -1,0 +1,36 @@
+{
+  "id": "chatcmpl-Dop3zRdggIJw14r5ZHzp2MwIubYEK",
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "logprobs": null,
+      "message": {
+        "content": "{\n  \"items\": [\n    {\n      \"clause_text\": \"1.1 Each party agrees to hold in confidence all Confidential Information received from the other party. \\\"Confidential Information\\\" means any non-public information disclosed by either party, whether orally, in writing, or electronically, that is designated as confidential or that reasonably should be understood to be confidential given the nature of the information and the circumstances of disclosure.\",\n      \"clause_name\": \"Confidentiality\",\n      \"clause_type\": \"confidentiality\",\n      \"summary\": \"Obligates both parties to keep shared confidential information private.\",\n      \"risk_level\": \"medium\",\n      \"impact\": \"Protects sensitive information from unauthorized disclosure.\",\n      \"recommendations\": [\n        \"Ensure all employees are trained on confidentiality obligations.\",\n        \"Regularly review and update confidentiality practices.\"\n      ],\n      \"confidence\": 0.9\n    },\n    {\n      \"clause_text\": \"2.1 Each party shall indemnify and hold harmless the other party from and against any claims, damages, and losses arising out of a breach of this Agreement by the indemnifying party.\",\n      \"clause_name\": \"Indemnification\",\n      \"clause_type\": \"indemnity\",\n      \"summary\": \"Each party agrees to compensate the other for losses due to breaches.\",\n      \"risk_level\": \"high\",\n      \"impact\": \"Potentially significant financial liability for breaches.\",\n      \"recommendations\": [\n        \"Consider obtaining insurance to cover indemnity obligations.\",\n        \"Review breach scenarios and prepare mitigation strategies.\"\n      ],\n      \"confidence\": 0.85\n    },\n    {\n      \"clause_text\": \"3.1 Neither party shall be liable for any indirect, incidental, special, or consequential damages arising out of this Agreement. The total liability of either party shall not exceed fifty thousand dollars ($50,000).\",\n      \"clause_name\": \"Limitation of Liability\",\n      \"clause_type\": \"liability\",\n      \"summary\": \"Limits the liability of each party to direct damages up to $50,000.\",\n      \"risk_level\": \"medium\",\n      \"impact\": \"Caps potential financial exposure for both parties.\",\n      \"recommendations\": [\n        \"Evaluate if the liability cap is sufficient for your business.\",\n        \"Negotiate higher limits if necessary based on risk assessment.\"\n      ],\n      \"confidence\": 0.8\n    },\n    {\n      \"clause_text\": \"5.1 Either party may terminate this Agreement upon fifteen (15) days' written notice to the other party. Upon termination, each party shall return or destroy all Confidential Information received from the other party.\",\n      \"clause_name\": \"Termination\",\n      \"clause_type\": \"termination\",\n      \"summary\": \"Allows either party to terminate the agreement with notice.\",\n      \"risk_level\": \"medium\",\n      \"impact\": \"Provides flexibility to exit the agreement but requires notice.\",\n      \"recommendations\": [\n        \"Establish a clear process for termination and information return.\",\n        \"Document all communications related to termination.\"\n      ],\n      \"confidence\": 0.75\n    },\n    {\n      \"clause_text\": \"6.1 Both parties shall comply with applicable data protection laws with respect to any personal data exchanged under this Agreement. Each party shall implement reasonable security measures to protect such data.\",\n      \"clause_name\": \"Data Protection\",\n      \"clause_type\": \"privacy\",\n      \"summary\": \"Mandates compliance with data protection laws and security measures.\",\n      \"risk_level\": \"high\",\n      \"impact\": \"Ensures legal compliance and protection of personal data.\",\n      \"recommendations\": [\n        \"Conduct regular audits of data protection practices.\",\n        \"Stay updated on changes in data protection laws.\"\n      ],\n      \"confidence\": 0.85\n    },\n    {\n      \"clause_text\": \"4.1 This Agreement shall be governed by the laws of the State of California. Any disputes shall be resolved in the courts of San Francisco, California.\",\n      \"clause_name\": \"Governing Law\",\n      \"clause_type\": \"dispute resolution\",\n      \"summary\": \"Specifies California law governs the agreement and dispute resolution location.\",\n      \"risk_level\": \"low\",\n      \"impact\": \"Clarifies legal jurisdiction for any disputes.\",\n      \"recommendations\": [\n        \"Consider the implications of California law on your operations.\",\n        \"Prepare for potential legal proceedings in California.\"\n      ],\n      \"confidence\": 0.7\n    }\n  ]\n}",
+        "refusal": null,
+        "role": "assistant",
+        "annotations": []
+      }
+    }
+  ],
+  "created": 1781005059,
+  "model": "gpt-4o-mini-2024-07-18",
+  "object": "chat.completion",
+  "service_tier": "default",
+  "system_fingerprint": "fp_f8d40babb7",
+  "usage": {
+    "completion_tokens": 927,
+    "prompt_tokens": 990,
+    "total_tokens": 1917,
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    },
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    }
+  }
+}

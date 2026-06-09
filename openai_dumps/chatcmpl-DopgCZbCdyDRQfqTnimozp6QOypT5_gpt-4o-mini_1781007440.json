@@ -1,0 +1,36 @@
+{
+  "id": "chatcmpl-DopgCZbCdyDRQfqTnimozp6QOypT5",
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "logprobs": null,
+      "message": {
+        "content": "{\n  \"items\": [\n    {\n      \"objective\": \"Ensure clarity on the definition of 'Services' to avoid scope creep.\",\n      \"leverage\": \"A clear definition helps manage expectations and limits the risk of additional costs.\",\n      \"proposed_language\": \"The term 'Services' shall explicitly include only those services listed in this Agreement and shall not be interpreted to include any additional services unless agreed upon in writing.\",\n      \"rationale\": \"This addition will protect the Company from unexpected charges for services that were not initially agreed upon.\",\n      \"priority\": \"high\",\n      \"source_page\": 1,\n      \"source_section\": \"2\",\n      \"source_clause_id\": \"243b38b6-7ff3-45d6-89bd-f823d35826c6\",\n      \"source_excerpt\": \"The term 'Services' when used in this Agreement means the performance of professional services that include but are not limited to system analysis, program development, personnel training, documentation writing and general business consulting.\",\n      \"confidence\": 0.85\n    },\n    {\n      \"objective\": \"Establish a clear timeline for the delivery of software.\",\n      \"leverage\": \"A defined timeline ensures accountability and helps the Company plan its operations accordingly.\",\n      \"proposed_language\": \"The Developer shall deliver the completed programming for each phase within [insert number] days from the date specified in the Phase Agreement.\",\n      \"rationale\": \"This will create a binding timeline that the Developer must adhere to, reducing the risk of delays.\",\n      \"priority\": \"high\",\n      \"source_page\": 1,\n      \"source_section\": \"4.7\",\n      \"source_clause_id\": \"4cbe1e9f-37cd-4323-a7dc-28779a31e252\",\n      \"source_excerpt\": \"On the delivery date specified in the Phase Agreement, Developer shall deliver to Company the completed programming for that phase.\",\n      \"confidence\": 0.90\n    },\n    {\n      \"objective\": \"Negotiate penalties for late delivery to incentivize timely completion.\",\n      \"leverage\": \"Penalties create a financial incentive for the Developer to meet deadlines.\",\n      \"proposed_language\": \"For each day the Developer is late beyond the grace period, a penalty of [%] of the total Phase cost shall be applied.\",\n      \"rationale\": \"This clause will encourage the Developer to prioritize timely delivery and minimize delays.\",\n      \"priority\": \"medium\",\n      \"source_page\": 1,\n      \"source_section\": \"4.8\",\n      \"source_clause_id\": \"482cd66c-ca7a-4b17-8535-93ba0845d9a9\",\n      \"source_excerpt\": \"Failure by Developer to deliver the completed programming by the end of the \u2026\u2026\u2026\u2026 [insert number] days after the delivery date specified in the Phase Agreement...\",\n      \"confidence\": 0.80\n    },\n    {\n      \"objective\": \"Clarify the process for handling acceptance test failures.\",\n      \"leverage\": \"A clear process ensures that both parties understand their responsibilities in case of failure.\",\n      \"proposed_language\": \"In the event of a failure during the acceptance test, the Developer shall have [NUMBER] days to remedy the failure, after which a new delivery date will be established.\",\n      \"rationale\": \"This will provide a structured approach to addressing issues, reducing potential disputes.\",\n      \"priority\": \"medium\",\n      \"source_page\": 1,\n      \"source_section\": \"4.12\",\n      \"source_clause_id\": \"65a8de99-bd28-4e5d-97f4-ca189e42ae59\",\n      \"source_excerpt\": \"If the programs fail to perfom the acceptance tests, the parties shall follow this procedure...\",\n      \"confidence\": 0.75\n    }\n  ]\n}",
+        "refusal": null,
+        "role": "assistant",
+        "annotations": []
+      }
+    }
+  ],
+  "created": 1781007428,
+  "model": "gpt-4o-mini-2024-07-18",
+  "object": "chat.completion",
+  "service_tier": "default",
+  "system_fingerprint": "fp_835779fe30",
+  "usage": {
+    "completion_tokens": 796,
+    "prompt_tokens": 4180,
+    "total_tokens": 4976,
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    },
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    }
+  }
+}

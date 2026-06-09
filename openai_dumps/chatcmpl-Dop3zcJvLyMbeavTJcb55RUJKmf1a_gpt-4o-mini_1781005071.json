@@ -1,0 +1,36 @@
+{
+  "id": "chatcmpl-Dop3zcJvLyMbeavTJcb55RUJKmf1a",
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "logprobs": null,
+      "message": {
+        "content": "{\n  \"items\": [\n    {\n      \"objective\": \"Extend the confidentiality obligations beyond two years.\",\n      \"leverage\": \"Longer confidentiality periods are common in industries where sensitive information is shared.\",\n      \"proposed_language\": \"These confidentiality obligations shall survive for a period of five (5) years after the termination of this Agreement.\",\n      \"rationale\": \"Extending the confidentiality period protects both parties' sensitive information for a longer duration, which is crucial in competitive industries.\",\n      \"priority\": \"high\",\n      \"confidence\": 0.8\n    },\n    {\n      \"objective\": \"Limit the indemnification clause to direct damages only.\",\n      \"leverage\": \"Indemnification for indirect damages can be overly burdensome and is not standard in many agreements.\",\n      \"proposed_language\": \"Each party shall indemnify and hold harmless the other party from and against any direct claims, damages, and losses arising out of a breach of this Agreement by the indemnifying party.\",\n      \"rationale\": \"Limiting indemnification to direct damages reduces potential liability and aligns with common practices in similar agreements.\",\n      \"priority\": \"medium\",\n      \"confidence\": 0.7\n    },\n    {\n      \"objective\": \"Increase the limitation of liability cap.\",\n      \"leverage\": \"A higher cap is more reflective of the potential damages that could arise from a breach.\",\n      \"proposed_language\": \"The total liability of either party shall not exceed one hundred thousand dollars ($100,000).\",\n      \"rationale\": \"Increasing the liability cap provides better protection for both parties in the event of significant damages.\",\n      \"priority\": \"medium\",\n      \"confidence\": 0.6\n    },\n    {\n      \"objective\": \"Specify a more flexible termination notice period.\",\n      \"leverage\": \"A shorter notice period allows for quicker termination if necessary, which can be crucial in fast-paced business environments.\",\n      \"proposed_language\": \"Either party may terminate this Agreement upon seven (7) days' written notice to the other party.\",\n      \"rationale\": \"A shorter notice period provides both parties with greater flexibility to exit the agreement if circumstances change.\",\n      \"priority\": \"low\",\n      \"confidence\": 0.5\n    },\n    {\n      \"objective\": \"Clarify the governing law and dispute resolution process.\",\n      \"leverage\": \"Clear dispute resolution processes can save time and resources in the event of a disagreement.\",\n      \"proposed_language\": \"This Agreement shall be governed by the laws of the State of California, and any disputes shall be resolved through mediation in San Francisco, California, before resorting to litigation.\",\n      \"rationale\": \"Adding mediation as a first step can facilitate quicker and less costly resolutions to disputes.\",\n      \"priority\": \"medium\",\n      \"confidence\": 0.7\n    }\n  ]\n}",
+        "refusal": null,
+        "role": "assistant",
+        "annotations": []
+      }
+    }
+  ],
+  "created": 1781005059,
+  "model": "gpt-4o-mini-2024-07-18",
+  "object": "chat.completion",
+  "service_tier": "default",
+  "system_fingerprint": "fp_31455a11c2",
+  "usage": {
+    "completion_tokens": 582,
+    "prompt_tokens": 904,
+    "total_tokens": 1486,
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    },
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    }
+  }
+}

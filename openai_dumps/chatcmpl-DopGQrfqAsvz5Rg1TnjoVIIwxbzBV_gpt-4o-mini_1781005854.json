@@ -1,0 +1,36 @@
+{
+  "id": "chatcmpl-DopGQrfqAsvz5Rg1TnjoVIIwxbzBV",
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "logprobs": null,
+      "message": {
+        "content": "{\n  \"items\": [\n    {\n      \"requirement\": \"Confidentiality obligations must be defined and enforced.\",\n      \"status\": \"pass\",\n      \"severity\": \"low\",\n      \"explanation\": \"The agreement includes clear confidentiality obligations that both parties must adhere to.\",\n      \"evidence\": [\n        \"Section 1. Confidentiality\",\n        \"1.1 Each party agrees to hold in confidence all Confidential Information received from the other party.\"\n      ],\n      \"remediation\": \"No remediation needed as the requirement is met.\",\n      \"confidence\": 0.9\n    },\n    {\n      \"requirement\": \"Indemnification clauses must be present.\",\n      \"status\": \"pass\",\n      \"severity\": \"low\",\n      \"explanation\": \"The agreement includes an indemnification clause that protects both parties.\",\n      \"evidence\": [\n        \"Section 2. Indemnification\",\n        \"2.1 Each party shall indemnify and hold harmless the other party from and against any claims, damages, and losses.\"\n      ],\n      \"remediation\": \"No remediation needed as the requirement is met.\",\n      \"confidence\": 0.9\n    },\n    {\n      \"requirement\": \"Limitation of liability must be defined.\",\n      \"status\": \"pass\",\n      \"severity\": \"low\",\n      \"explanation\": \"The agreement specifies a limitation of liability for both parties.\",\n      \"evidence\": [\n        \"Section 3. Limitation of Liability\",\n        \"3.1 Neither party shall be liable for any indirect, incidental, special, or consequential damages.\"\n      ],\n      \"remediation\": \"No remediation needed as the requirement is met.\",\n      \"confidence\": 0.9\n    },\n    {\n      \"requirement\": \"Governing law must be specified.\",\n      \"status\": \"pass\",\n      \"severity\": \"low\",\n      \"explanation\": \"The agreement specifies that it is governed by the laws of California.\",\n      \"evidence\": [\n        \"Section 4. Governing Law\",\n        \"4.1 This Agreement shall be governed by the laws of the State of California.\"\n      ],\n      \"remediation\": \"No remediation needed as the requirement is met.\",\n      \"confidence\": 0.9\n    },\n    {\n      \"requirement\": \"Termination clauses must be included.\",\n      \"status\": \"pass\",\n      \"severity\": \"low\",\n      \"explanation\": \"The agreement includes a termination clause allowing either party to terminate with notice.\",\n      \"evidence\": [\n        \"Section 5. Termination\",\n        \"5.1 Either party may terminate this Agreement upon fifteen (15) days' written notice.\"\n      ],\n      \"remediation\": \"No remediation needed as the requirement is met.\",\n      \"confidence\": 0.9\n    },\n    {\n      \"requirement\": \"Data protection compliance must be addressed.\",\n      \"status\": \"pass\",\n      \"severity\": \"medium\",\n      \"explanation\": \"The agreement includes a clause requiring compliance with applicable data protection laws.\",\n      \"evidence\": [\n        \"Section 6. Data Protection\",\n        \"6.1 Both parties shall comply with applicable data protection laws.\"\n      ],\n      \"remediation\": \"No remediation needed as the requirement is met.\",\n      \"confidence\": 0.85\n    },\n    {\n      \"requirement\": \"Audit rights must be included.\",\n      \"status\": \"fail\",\n      \"severity\": \"high\",\n      \"explanation\": \"The agreement does not include any provisions for audit rights.\",\n      \"evidence\": [],\n      \"remediation\": \"Include a clause that grants audit rights to ensure compliance with the agreement.\",\n      \"confidence\": 0.7\n    }\n  ]\n}",
+        "refusal": null,
+        "role": "assistant",
+        "annotations": []
+      }
+    }
+  ],
+  "created": 1781005830,
+  "model": "gpt-4o-mini-2024-07-18",
+  "object": "chat.completion",
+  "service_tier": "default",
+  "system_fingerprint": "fp_2d3cd316d9",
+  "usage": {
+    "completion_tokens": 769,
+    "prompt_tokens": 937,
+    "total_tokens": 1706,
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    },
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    }
+  }
+}

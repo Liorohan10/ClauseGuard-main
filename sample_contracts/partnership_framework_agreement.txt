@@ -1,0 +1,129 @@
+STRATEGIC PARTNERSHIP FRAMEWORK AGREEMENT
+
+This Strategic Partnership Framework Agreement ("Agreement") is entered into as of August 15, 2025, by and between:
+
+Aurora Renewable Energy Corp., a Delaware corporation with its principal office at 2200 Solar Boulevard, San Diego, CA 92101 ("Aurora"); and
+
+Titan Manufacturing Group, Inc., a Michigan corporation with its principal office at 8800 Industrial Parkway, Detroit, MI 48201 ("Titan");
+
+collectively referred to as the "Partners" and individually as a "Partner."
+
+RECITALS
+
+WHEREAS, Aurora is a leading developer of solar panel technology and renewable energy solutions; and
+WHEREAS, Titan is a leading manufacturer of industrial components and assembly systems; and
+WHEREAS, the Partners wish to establish a framework for joint development and commercialization of integrated solar manufacturing systems;
+
+NOW, THEREFORE, the Partners agree as follows:
+
+Section 1. Purpose and Scope
+
+1.1 The Partners shall collaborate on the joint development, manufacturing, and commercialization of next-generation solar panel assembly systems (the "Joint Products") as further defined in individual Project Plans.
+
+1.2 Neither Partner shall be obligated to undertake any specific project unless both Partners execute a Project Plan setting forth the scope, timeline, budget, and resource commitments.
+
+1.3 Each Partner shall appoint a Partnership Manager who shall serve as the primary point of contact and shall participate in quarterly steering committee meetings.
+
+Section 2. Financial Terms
+
+2.1 Development costs shall be shared equally unless otherwise specified in the applicable Project Plan.
+
+2.2 Revenue from Joint Products shall be allocated sixty percent (60%) to Aurora and forty percent (40%) to Titan, reflecting the relative contribution of intellectual property and manufacturing capability.
+
+2.3 Each Partner shall maintain separate books and records related to Partnership activities and shall provide quarterly financial reports to the other Partner.
+
+Section 3. Intellectual Property
+
+3.1 Each Partner retains sole ownership of its Background IP, defined as all intellectual property owned or controlled by that Partner prior to or independently of this Agreement.
+
+3.2 Foreground IP, defined as intellectual property jointly created in the performance of this Agreement, shall be jointly owned by the Partners in proportion to their respective contributions as documented in the applicable Project Plan.
+
+3.3 Neither Partner shall license, assign, or otherwise encumber Foreground IP without the prior written consent of the other Partner.
+
+3.4 Each Partner grants the other a non-exclusive, royalty-free license to use its Background IP solely to the extent necessary for the performance of this Agreement and the commercialization of Joint Products.
+
+Section 4. Confidentiality
+
+4.1 "Confidential Information" means all non-public technical, business, or financial information disclosed by one Partner to the other in connection with this Agreement, whether disclosed orally, in writing, electronically, or by inspection.
+
+4.2 Each Partner shall: (a) protect the other's Confidential Information with at least the same degree of care it uses for its own, and in no event less than reasonable care; (b) use such information solely for purposes of this Agreement; (c) restrict access to employees and contractors with a need to know who are bound by confidentiality obligations; and (d) not disclose such information to third parties without prior written consent.
+
+4.3 Exclusions: The obligations of this Section do not apply to information that: (i) is or becomes publicly available without breach; (ii) was known to the receiving Partner prior to disclosure; (iii) is received from a third party without restriction; (iv) is independently developed; or (v) must be disclosed by law, provided the receiving Partner gives prompt written notice.
+
+4.4 The confidentiality obligations shall survive for five (5) years after termination, except for trade secrets, which shall be protected indefinitely.
+
+Section 5. Data Protection
+
+5.1 To the extent the Partners exchange or jointly process personal data in connection with this Agreement, both Partners shall comply with all applicable data protection laws, including the GDPR and the CCPA.
+
+5.2 The Partners shall enter into a separate Data Processing Agreement if the nature of the collaboration requires the processing of personal data beyond incidental business contact information.
+
+5.3 Each Partner shall implement appropriate technical and organizational measures to safeguard personal data, including encryption, access controls, and regular security assessments.
+
+Section 6. Representations and Warranties
+
+6.1 Each Partner represents and warrants that: (a) it has the authority to enter into and perform this Agreement; (b) the execution of this Agreement will not violate any other agreement to which it is a party; (c) it owns or has the right to use the Background IP it contributes; and (d) to its knowledge, its Background IP does not infringe any third-party rights.
+
+6.2 EXCEPT AS EXPRESSLY SET FORTH HEREIN, NEITHER PARTNER MAKES ANY WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+
+Section 7. Indemnification
+
+7.1 Aurora shall indemnify, defend, and hold harmless Titan and its officers, directors, employees, and agents from and against any claims, damages, losses, and expenses (including reasonable attorneys' fees) arising from: (a) Aurora's breach of this Agreement; (b) Aurora's negligence or willful misconduct; (c) any claim that Aurora's Background IP infringes a third party's intellectual property rights; or (d) Aurora's violation of applicable law.
+
+7.2 Titan shall indemnify, defend, and hold harmless Aurora and its officers, directors, employees, and agents from and against any claims, damages, losses, and expenses (including reasonable attorneys' fees) arising from: (a) Titan's breach of this Agreement; (b) Titan's negligence or willful misconduct; (c) any claim that Titan's Background IP infringes a third party's intellectual property rights; or (d) Titan's violation of applicable law.
+
+7.3 The indemnifying Partner shall have sole control over the defense and settlement of any claim, provided that no settlement may impose obligations on the indemnified Partner without its written consent.
+
+Section 8. Limitation of Liability
+
+8.1 NEITHER PARTNER SHALL BE LIABLE TO THE OTHER FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES ARISING FROM THIS AGREEMENT, INCLUDING BUT NOT LIMITED TO LOST PROFITS, LOST REVENUE, OR LOST BUSINESS OPPORTUNITIES, REGARDLESS OF THE CAUSE OF ACTION OR THEORY OF LIABILITY.
+
+8.2 EACH PARTNER'S TOTAL AGGREGATE LIABILITY UNDER THIS AGREEMENT SHALL NOT EXCEED THE TOTAL AMOUNTS PAID OR PAYABLE UNDER THIS AGREEMENT DURING THE TWENTY-FOUR (24) MONTH PERIOD PRECEDING THE CLAIM.
+
+8.3 THE FOREGOING LIMITATIONS SHALL NOT APPLY TO: (A) BREACHES OF SECTION 4 (CONFIDENTIALITY); (B) INDEMNIFICATION OBLIGATIONS; OR (C) A PARTNER'S GROSS NEGLIGENCE OR WILLFUL MISCONDUCT.
+
+Section 9. Term and Termination
+
+9.1 This Agreement shall commence on the Effective Date and shall continue for an initial term of five (5) years ("Initial Term").
+
+9.2 After the Initial Term, this Agreement shall automatically renew for successive two-year periods unless either Partner provides written notice of non-renewal at least one hundred eighty (180) days prior to the end of the then-current term.
+
+9.3 Either Partner may terminate this Agreement: (a) for convenience upon one hundred twenty (120) days' prior written notice; (b) for material breach, if the breaching Partner fails to cure within forty-five (45) days of receiving detailed written notice; or (c) immediately if the other Partner becomes insolvent, files for bankruptcy, or ceases to conduct business.
+
+9.4 Upon termination: (a) each Partner shall return or destroy the other's Confidential Information; (b) joint obligations under existing Project Plans shall be wound down in an orderly manner over a period not to exceed ninety (90) days; (c) each Partner shall retain its rights in Background IP; (d) Foreground IP shall continue to be jointly owned subject to terms to be agreed upon termination; and (e) the provisions of Sections 3, 4, 5, 7, 8, and 10 shall survive.
+
+Section 10. Governing Law and Dispute Resolution
+
+10.1 This Agreement shall be governed by and construed in accordance with the laws of the State of Delaware, without regard to its conflict of laws principles.
+
+10.2 Any dispute arising out of or relating to this Agreement shall first be escalated to the Partners' senior executives for resolution through good-faith negotiation for a period of forty-five (45) days.
+
+10.3 If executive negotiation fails, disputes shall be submitted to binding arbitration under the rules of JAMS in Wilmington, Delaware. The arbitration panel shall consist of three arbitrators, with each Partner selecting one and the two selected arbitrators selecting the third.
+
+10.4 Each Partner shall bear its own costs of arbitration, and the costs of the arbitration panel shall be shared equally unless the arbitrators decide otherwise.
+
+10.5 Notwithstanding the foregoing, either Partner may seek provisional or injunctive relief in any court of competent jurisdiction to protect its intellectual property rights or Confidential Information.
+
+Section 11. Force Majeure
+
+11.1 Neither Partner shall be liable for failure or delay in performance caused by events beyond its reasonable control, including natural disasters, war, terrorism, pandemics, government actions, supply chain disruptions, or widespread utility failures.
+
+11.2 The affected Partner shall provide written notice within five (5) business days of the event and shall use commercially reasonable efforts to mitigate the impact and resume performance.
+
+11.3 If a force majeure event continues for more than one hundred twenty (120) days, either Partner may terminate the affected Project Plan upon written notice.
+
+Section 12. General Provisions
+
+12.1 This Agreement constitutes the entire agreement between the Partners with respect to its subject matter and supersedes all prior agreements and understandings.
+
+12.2 This Agreement may be amended only by written instrument signed by authorized representatives of both Partners.
+
+12.3 Neither Partner may assign this Agreement without prior written consent, except to a wholly-owned subsidiary or in connection with a merger or acquisition.
+
+12.4 The Partners are independent entities. Nothing in this Agreement creates a partnership, joint venture, agency, or employment relationship for any purpose other than as expressly provided herein.
+
+12.5 All notices shall be in writing and shall be deemed effective upon receipt when sent by email with read receipt, overnight courier, or certified mail.
+
+12.6 If any provision is held invalid, the remaining provisions shall continue in full force and effect.
+
+IN WITNESS WHEREOF, the Partners have executed this Agreement as of the Effective Date.

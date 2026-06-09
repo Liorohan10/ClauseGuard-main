@@ -1,0 +1,57 @@
+VENDOR SERVICES AGREEMENT
+
+This Vendor Services Agreement ("Agreement") is made effective as of February 1, 2025, between QuickShip Logistics, a sole proprietorship operated by James Parker ("Vendor"), and TrendMart Online, Inc. ("Company").
+
+Section 1. Services
+
+1.1 Vendor shall provide last-mile delivery and fulfillment services for Company's e-commerce orders in the greater Los Angeles metropolitan area.
+
+1.2 Vendor shall process and deliver all orders within two (2) business days of receipt.
+
+Section 2. Compensation
+
+2.1 Company shall pay Vendor a flat fee of eight dollars and fifty cents ($8.50) per delivery, invoiced weekly. Payment is due within seven (7) days of invoice.
+
+Section 3. Confidentiality
+
+3.1 Vendor agrees not to share Company's customer lists, order data, or pricing information with any competitor or third party. This obligation lasts for one (1) year after this Agreement ends.
+
+Section 4. Liability
+
+4.1 Vendor's total liability under this Agreement shall not exceed the fees paid to Vendor in the last three (3) months. Company is not liable for any damages whatsoever arising from this Agreement.
+
+4.2 Vendor assumes all risk for lost, damaged, or delayed packages and shall reimburse Company for the full retail value of any lost or damaged goods.
+
+Section 5. Indemnification
+
+5.1 Vendor shall indemnify and hold harmless Company from any and all claims, losses, or damages arising from Vendor's performance of services under this Agreement, including but not limited to personal injury, property damage, and traffic violations.
+
+5.2 Company has no indemnification obligations to Vendor under any circumstances.
+
+Section 6. Termination
+
+6.1 Company may terminate this Agreement at any time for any reason with five (5) days' notice. Vendor may not terminate this Agreement without Company's prior written consent.
+
+6.2 Upon termination, Vendor shall complete all pending deliveries and return all Company property within forty-eight (48) hours.
+
+Section 7. Intellectual Property
+
+7.1 Any route optimization algorithms, delivery processes, or operational improvements developed by Vendor while performing services under this Agreement shall become the exclusive property of Company.
+
+7.2 Vendor grants Company a perpetual, irrevocable, worldwide license to use Vendor's name, likeness, and branding in connection with Company's marketing materials.
+
+Section 8. Governing Law
+
+8.1 This Agreement is governed by the laws of the State of California. Any disputes will be resolved exclusively by Company in its sole discretion through arbitration in Los Angeles. Vendor waives any right to a jury trial.
+
+Section 9. Insurance
+
+9.1 Vendor shall maintain commercial auto insurance with minimum coverage of five hundred thousand dollars ($500,000) and general liability insurance with minimum coverage of one million dollars ($1,000,000).
+
+Section 10. General
+
+10.1 This Agreement constitutes the entire agreement. Company may amend this Agreement at any time by providing written notice to Vendor; Vendor's continued performance constitutes acceptance of amendments.
+
+10.2 Vendor may not assign or subcontract any obligations without Company's prior written consent.
+
+IN WITNESS WHEREOF, the Parties execute this Agreement as of the date first written above.

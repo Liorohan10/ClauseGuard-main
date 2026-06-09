@@ -1,0 +1,36 @@
+{
+  "id": "chatcmpl-DopFhQlEAT0v7w7QLfqZ5Lcjf874W",
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "logprobs": null,
+      "message": {
+        "content": "{\n  \"items\": [\n    {\n      \"requirement\": \"Confidentiality obligations must be defined and include a duration.\",\n      \"status\": \"pass\",\n      \"severity\": \"low\",\n      \"explanation\": \"The agreement clearly defines confidentiality obligations and specifies a duration of two years post-termination.\",\n      \"evidence\": [\n        \"Section 1.1 defines Confidential Information.\",\n        \"Section 1.3 states confidentiality obligations survive for two years after termination.\"\n      ],\n      \"remediation\": \"No remediation needed.\",\n      \"confidence\": 1.0\n    },\n    {\n      \"requirement\": \"Indemnification clause must be included.\",\n      \"status\": \"pass\",\n      \"severity\": \"low\",\n      \"explanation\": \"The agreement includes an indemnification clause protecting both parties from breaches.\",\n      \"evidence\": [\n        \"Section 2.1 states each party shall indemnify the other from claims arising out of breaches.\"\n      ],\n      \"remediation\": \"No remediation needed.\",\n      \"confidence\": 1.0\n    },\n    {\n      \"requirement\": \"Limitation of liability must be defined.\",\n      \"status\": \"pass\",\n      \"severity\": \"low\",\n      \"explanation\": \"The agreement includes a limitation of liability clause that caps damages.\",\n      \"evidence\": [\n        \"Section 3.1 limits liability to $50,000.\"\n      ],\n      \"remediation\": \"No remediation needed.\",\n      \"confidence\": 1.0\n    },\n    {\n      \"requirement\": \"Governing law must be specified.\",\n      \"status\": \"pass\",\n      \"severity\": \"low\",\n      \"explanation\": \"The agreement specifies that it is governed by the laws of California.\",\n      \"evidence\": [\n        \"Section 4.1 states the governing law is California.\"\n      ],\n      \"remediation\": \"No remediation needed.\",\n      \"confidence\": 1.0\n    },\n    {\n      \"requirement\": \"Termination rights must be defined.\",\n      \"status\": \"pass\",\n      \"severity\": \"low\",\n      \"explanation\": \"The agreement allows for termination with a 15-day notice.\",\n      \"evidence\": [\n        \"Section 5.1 outlines termination rights.\"\n      ],\n      \"remediation\": \"No remediation needed.\",\n      \"confidence\": 1.0\n    },\n    {\n      \"requirement\": \"Data protection compliance must be addressed.\",\n      \"status\": \"pass\",\n      \"severity\": \"medium\",\n      \"explanation\": \"The agreement includes a clause requiring compliance with data protection laws.\",\n      \"evidence\": [\n        \"Section 6.1 mandates compliance with applicable data protection laws.\"\n      ],\n      \"remediation\": \"No remediation needed.\",\n      \"confidence\": 1.0\n    },\n    {\n      \"requirement\": \"Data security measures must be implemented.\",\n      \"status\": \"pass\",\n      \"severity\": \"medium\",\n      \"explanation\": \"The agreement requires both parties to implement reasonable security measures for data protection.\",\n      \"evidence\": [\n        \"Section 6.1 states parties shall implement reasonable security measures.\"\n      ],\n      \"remediation\": \"No remediation needed.\",\n      \"confidence\": 1.0\n    },\n    {\n      \"requirement\": \"Audit rights must be included.\",\n      \"status\": \"fail\",\n      \"severity\": \"high\",\n      \"explanation\": \"The agreement does not include any provisions for audit rights.\",\n      \"evidence\": [],\n      \"remediation\": \"Include a clause that grants audit rights to ensure compliance with the agreement.\",\n      \"confidence\": 0.8\n    }\n  ]\n}",
+        "refusal": null,
+        "role": "assistant",
+        "annotations": []
+      }
+    }
+  ],
+  "created": 1781005785,
+  "model": "gpt-4o-mini-2024-07-18",
+  "object": "chat.completion",
+  "service_tier": "default",
+  "system_fingerprint": "fp_2d3cd316d9",
+  "usage": {
+    "completion_tokens": 759,
+    "prompt_tokens": 937,
+    "total_tokens": 1696,
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    },
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "id": "chatcmpl-Dopms2OrkyUSytp8vQb5yreEzorTR",
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "logprobs": null,
+      "message": {
+        "content": "{\n  \"items\": [\n    {\n      \"requirement\": \"Data Security and Confidentiality\",\n      \"status\": \"fail\",\n      \"severity\": \"high\",\n      \"explanation\": \"The contract lacks explicit clauses addressing data security measures and confidentiality obligations for the handling of sensitive information.\",\n      \"evidence\": [\n        \"The term 'Services' when used in this Agreement means the performance of professional services that include but are not limited to system analysis, program development, personnel training, documentation writing and general business consulting.\"\n      ],\n      \"remediation\": \"Include specific clauses outlining data security protocols, confidentiality obligations, and measures to protect sensitive information.\",\n      \"source_page\": 1,\n      \"source_section\": \"2\",\n      \"source_clause_id\": \"764e7eeb-a883-456d-a401-e2bc630c60a0\",\n      \"source_excerpt\": \"The term 'Services' when used in this Agreement means the performance of professional services that include but are not limited to system analysis, program development, personnel training, documentation writing and general business consulting.\",\n      \"confidence\": 0.85\n    },\n    {\n      \"requirement\": \"Audit Rights\",\n      \"status\": \"fail\",\n      \"severity\": \"medium\",\n      \"explanation\": \"The contract does not provide for audit rights to ensure compliance with the terms of the agreement and applicable laws.\",\n      \"evidence\": [\n        \"Developer shall provide and deliver to Company custom software in regards thereto as outlined in Clause 3.\"\n      ],\n      \"remediation\": \"Add a clause that grants the Company the right to audit the Developer's compliance with the contract terms and applicable regulations.\",\n      \"source_page\": 1,\n      \"source_section\": \"2\",\n      \"source_clause_id\": \"dc71332c-eddb-412c-a67b-f7e37492a378\",\n      \"source_excerpt\": \"Developer shall provide and deliver to Company custom software in regards thereto as outlined in Clause 3.\",\n      \"confidence\": 0.75\n    },\n    {\n      \"requirement\": \"Legal Compliance\",\n      \"status\": \"fail\",\n      \"severity\": \"high\",\n      \"explanation\": \"The contract does not explicitly require compliance with applicable laws and regulations, which is essential for legal protection.\",\n      \"evidence\": [\n        \"In the event that Developer fails to deliver the completed programs \u2026\u2026\u2026..[insert number] months after the original delivery date, and the delivery date was not modified, Company may cancel that Phase Agreement.\"\n      ],\n      \"remediation\": \"Include a clause that mandates compliance with all applicable laws and regulations relevant to the services provided.\",\n      \"source_page\": 1,\n      \"source_section\": \"4.9\",\n      \"source_clause_id\": \"fbca1200-9bae-4a0a-8990-7b76afcf59c1\",\n      \"source_excerpt\": \"In the event that Developer fails to deliver the completed programs \u2026\u2026\u2026..[insert number] months after the original delivery date, and the delivery date was not modified, Company may cancel that Phase Agreement.\",\n      \"confidence\": 0.80\n    },\n    {\n      \"requirement\": \"Data Retention\",\n      \"status\": \"fail\",\n      \"severity\": \"medium\",\n      \"explanation\": \"The contract does not specify data retention policies or the duration for which data must be retained or disposed of.\",\n      \"evidence\": [\n        \"In the event that the failure cannot be remedied after the [NUMBER] day, Developer shall notify Company within an additional [NUMBER] days of the new delivery date for that Phase.\"\n      ],\n      \"remediation\": \"Incorporate a data retention policy that outlines how long data will be retained and the process for its secure disposal.\",\n      \"source_page\": 1,\n      \"source_section\": \"4.12\",\n      \"source_clause_id\": \"fe304568-adb7-42e4-87f8-6f480fc49611\",\n      \"source_excerpt\": \"In the event that the failure cannot be remedied after the [NUMBER] day, Developer shall notify Company within an additional [NUMBER] days of the new delivery date for that Phase.\",\n      \"confidence\": 0.70\n    }\n  ]\n}",
+        "refusal": null,
+        "role": "assistant",
+        "annotations": []
+      }
+    }
+  ],
+  "created": 1781007842,
+  "model": "gpt-4o-mini-2024-07-18",
+  "object": "chat.completion",
+  "service_tier": "default",
+  "system_fingerprint": "fp_032c106278",
+  "usage": {
+    "completion_tokens": 886,
+    "prompt_tokens": 2129,
+    "total_tokens": 3015,
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 0,
+      "rejected_prediction_tokens": 0
+    },
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cached_tokens": 0
+    }
+  }
+}

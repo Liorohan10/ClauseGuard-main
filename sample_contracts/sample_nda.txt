@@ -1,0 +1,39 @@
+MUTUAL NON-DISCLOSURE AGREEMENT
+
+This Mutual Non-Disclosure Agreement ("Agreement") is entered into as of January 15, 2025, by and between Acme Corporation ("Acme") and Beta Industries ("Beta"), collectively referred to as the "Parties."
+
+Section 1. Confidentiality
+
+1.1 Each party agrees to hold in confidence all Confidential Information received from the other party. "Confidential Information" means any non-public information disclosed by either party, whether orally, in writing, or electronically, that is designated as confidential or that reasonably should be understood to be confidential given the nature of the information and the circumstances of disclosure.
+
+1.2 The receiving party shall not disclose Confidential Information to any third party without prior written consent of the disclosing party and shall use it only for the purposes of evaluating a potential business relationship between the Parties.
+
+1.3 These confidentiality obligations shall survive for a period of two (2) years after the termination of this Agreement.
+
+Section 2. Indemnification
+
+2.1 Each party shall indemnify and hold harmless the other party from and against any claims, damages, and losses arising out of a breach of this Agreement by the indemnifying party.
+
+Section 3. Limitation of Liability
+
+3.1 Neither party shall be liable for any indirect, incidental, special, or consequential damages arising out of this Agreement. The total liability of either party shall not exceed fifty thousand dollars ($50,000).
+
+Section 4. Governing Law
+
+4.1 This Agreement shall be governed by the laws of the State of California. Any disputes shall be resolved in the courts of San Francisco, California.
+
+Section 5. Termination
+
+5.1 Either party may terminate this Agreement upon fifteen (15) days' written notice to the other party. Upon termination, each party shall return or destroy all Confidential Information received from the other party.
+
+Section 6. Data Protection
+
+6.1 Both parties shall comply with applicable data protection laws with respect to any personal data exchanged under this Agreement. Each party shall implement reasonable security measures to protect such data.
+
+Section 7. General Provisions
+
+7.1 This Agreement constitutes the entire agreement between the Parties with respect to the subject matter hereof and supersedes all prior negotiations, representations, or agreements.
+
+7.2 This Agreement may not be amended except by a written instrument signed by both Parties.
+
+IN WITNESS WHEREOF, the Parties have executed this Agreement as of the date first written above.
