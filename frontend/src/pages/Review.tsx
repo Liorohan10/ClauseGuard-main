@@ -125,7 +125,9 @@ export function ReviewPage() {
       const a = document.createElement('a');
       a.href = url;
       a.download = `${report.source_filename || id}_compliance_review.xlsx`;
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } finally {
       setExporting(false);

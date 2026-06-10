@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from io import BytesIO
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from fastapi.responses import StreamingResponse
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, PatternFill
@@ -291,18 +291,6 @@ async def review_history(
     ]
 
 
-@router.get("/{contract_id}/{review_id}", response_model=ContractReviewOutput)
-async def get_review_by_id(
-    contract_id: str,
-    review_id: str,
-    es: ElasticsearchService = Depends(get_es_service),
-):
-    record = await es.get_review_by_id(review_id)
-    if not record or record.get("contract_id") != contract_id:
-        raise HTTPException(status_code=404, detail="Review not found")
-    return _review_from_record(record)
-
-
 @router.get("/{contract_id}/export.xlsx")
 async def export_review_xlsx(
     contract_id: str,
@@ -317,11 +305,23 @@ async def export_review_xlsx(
     contract_filename = record.get("contract_filename", contract_id)
     buffer = _build_workbook(review, contract_filename, reviewed_at)
     filename = f"{contract_filename.rsplit('.', 1)[0]}_compliance_review.xlsx"
-    return StreamingResponse(
-        buffer,
+    return Response(
+        content=buffer.getvalue(),
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+@router.get("/{contract_id}/{review_id}", response_model=ContractReviewOutput)
+async def get_review_by_id(
+    contract_id: str,
+    review_id: str,
+    es: ElasticsearchService = Depends(get_es_service),
+):
+    record = await es.get_review_by_id(review_id)
+    if not record or record.get("contract_id") != contract_id:
+        raise HTTPException(status_code=404, detail="Review not found")
+    return _review_from_record(record)
 
 
 @router.delete("/{contract_id}")

@@ -66,7 +66,9 @@ export function ContractDetail() {
       const a = document.createElement('a');
       a.href = url;
       a.download = `${contract.filename}_compliance_review.xlsx`;
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } finally {
       setExporting(false);
