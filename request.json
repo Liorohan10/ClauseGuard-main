@@ -1,0 +1,5 @@
+{
+"query": "liability cap tied to fees paid",
+"clause_type": "liability_cap",
+"top_k": 5
+}

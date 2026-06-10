@@ -4,7 +4,6 @@ import asyncio
 import base64
 import json
 import logging
-import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -248,30 +247,6 @@ class OpenAILegalAssistant:
             )
             resp_id = getattr(response, "id", None) or (response.to_dict().get("id") if hasattr(response, "to_dict") else None)
             logger.info("OpenAI response received: id=%s", resp_id)
-            # Dump raw response for inspection when configured
-            try:
-                dump_dir = Path(settings.openai_dump_dir or "openai_dumps")
-                dump_dir.mkdir(parents=True, exist_ok=True)
-                timestamp = int(time.time())
-                model_safe = model.replace("/", "_")
-                fname = f"{resp_id or 'noid'}_{model_safe}_{timestamp}.json"
-                fpath = dump_dir / fname
-                # Attempt to get a serializable dict from response
-                data = None
-                if hasattr(response, "to_dict"):
-                    try:
-                        data = response.to_dict()
-                    except Exception:
-                        data = None
-                if data is None:
-                    try:
-                        data = json.loads(str(response))
-                    except Exception:
-                        data = {"repr": str(response)}
-                fpath.write_text(json.dumps(data, indent=2), encoding="utf-8")
-                logger.info("OpenAI raw response dumped to %s", fpath)
-            except Exception:
-                logger.exception("Failed to dump OpenAI response to file")
             content = response.choices[0].message.content or "{}"
             return content.strip()
         except Exception:
@@ -280,10 +255,38 @@ class OpenAILegalAssistant:
 
     def _parse_model(self, raw_json: str, schema: type):
         try:
-            return schema.model_validate_json(raw_json)
+            sanitized_json = self._sanitize_json_for_schema(raw_json, schema)
+            return schema.model_validate_json(sanitized_json)
         except Exception:
             logger.exception("Failed to parse OpenAI JSON for %s", schema.__name__)
             return schema.model_validate(self._fallback_payload(schema))
+
+    def _sanitize_json_for_schema(self, raw_json: str, schema: type) -> str:
+        """Coerce null citation fields to empty strings before schema validation."""
+        try:
+            payload = json.loads(raw_json)
+        except Exception:
+            return raw_json
+
+        if isinstance(payload, dict):
+            payload = self._coerce_nullable_citations(payload)
+        try:
+            return json.dumps(payload, ensure_ascii=False)
+        except Exception:
+            return raw_json
+
+    def _coerce_nullable_citations(self, payload: dict[str, Any]) -> dict[str, Any]:
+        items = payload.get("items")
+        if not isinstance(items, list):
+            return payload
+
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            for field in ("source_section", "source_clause_id", "source_excerpt"):
+                if item.get(field) is None:
+                    item[field] = ""
+        return payload
 
     def _unwrap_response(self, value: Any, schema: type):
         if isinstance(value, Exception):

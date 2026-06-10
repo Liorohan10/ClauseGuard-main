@@ -190,6 +190,14 @@ bash seed.sh
 
 Uploads 8 sample contracts covering NDAs, SaaS agreements, consulting contracts, and more.
 
+### 7. CUAD Knowledge Base (Optional)
+
+```bash
+python scripts/load_cuad.py --path CUADv1.json
+```
+
+Indexes CUADv1 expert-annotated clause examples into a dedicated Elasticsearch index for CUAD-backed retrieval during review.
+
 ---
 
 ## API
@@ -204,6 +212,7 @@ All endpoints are prefixed with `/api/v1`.
 | `GET` | `/contracts/{id}` | Get contract metadata |
 | `GET` | `/contracts/{id}/clauses` | Get extracted clauses |
 | `POST` | `/search/` | Hybrid search |
+| `POST` | `/search/cuad` | Hybrid search over CUAD examples |
 | `POST` | `/review/{id}` | Run compliance review |
 
 <details>

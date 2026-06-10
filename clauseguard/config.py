@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     embedding_model: str = "all-MiniLM-L6-v2"
     es_contracts_index: str = "clauseguard-contracts"
     es_clauses_index: str = "clauseguard-clauses"
+    es_cuad_index: str = "clauseguard-cuad"
     openai_dump_dir: str = "openai_dumps"
 
     @property

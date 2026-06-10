@@ -72,6 +72,12 @@ COMPANY TEMPLATE:
 KEY REQUIREMENTS:
 {requirements}
 
+CUAD EXPERT EXAMPLES:
+{cuad_examples}
+
+Use the CUAD examples as grounded legal precedent for tone, scope, and severity.
+If the examples do not directly support a conclusion, say so in the deviation and risk fields instead of inferring facts.
+
 Analyze the clause and return a JSON object with:
 - "severity": "high", "medium", "low", or "info"
 - "deviation": a clear description of how the clause deviates from the template
@@ -141,6 +147,7 @@ class ClaudeService:
         clause_type: str,
         template_text: str,
         requirements: list[str],
+        reference_examples: list[dict] | None = None,
     ) -> dict:
         """Compare a single clause against a template using LLM."""
         prompt = COMPARE_CLAUSE_PROMPT.format(
@@ -148,6 +155,7 @@ class ClaudeService:
             clause_text=clause_text,
             template_text=template_text,
             requirements="\n".join(f"- {r}" for r in requirements),
+            cuad_examples=self._format_reference_examples(reference_examples),
         )
 
         raw = _call_with_retry(
@@ -167,6 +175,23 @@ class ClaudeService:
                 "recommendation": "Manual review required",
                 "confidence": 0.0,
             }
+
+    def _format_reference_examples(self, reference_examples: list[dict] | None) -> str:
+        if not reference_examples:
+            return "None provided."
+
+        lines: list[str] = []
+        for index, example in enumerate(reference_examples, start=1):
+            lines.append(
+                f"Example {index}:\n"
+                f"- CUAD label: {example.get('cuad_label', '')}\n"
+                f"- Normalized type: {example.get('clause_type', '')}\n"
+                f"- Title: {example.get('title', '')}\n"
+                f"- Question: {example.get('question', '')}\n"
+                f"- Answer: {example.get('answer_text', '')}\n"
+                f"- Context excerpt: {example.get('context_excerpt', '')}"
+            )
+        return "\n\n".join(lines)
 
     def generate_report_summary(
         self, findings: list[dict], missing_clauses: list[str]

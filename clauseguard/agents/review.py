@@ -2,7 +2,9 @@ import asyncio
 import logging
 from concurrent.futures import ThreadPoolExecutor
 
+from clauseguard.agents.search import SearchAgent
 from clauseguard.models.clause import ClauseType
+from clauseguard.models.cuad import CuadSearchRequest
 from clauseguard.models.report import Finding, RiskReport, Severity
 from clauseguard.services.claude_service import ClaudeService
 from clauseguard.services.elasticsearch_service import ElasticsearchService
@@ -18,9 +20,11 @@ class ReviewAgent:
         self,
         claude_service: ClaudeService,
         es_service: ElasticsearchService,
+        search_agent: SearchAgent,
     ):
         self.claude = claude_service
         self.es = es_service
+        self.search = search_agent
         self._executor = ThreadPoolExecutor(max_workers=2)
 
     async def review(self, contract_id: str) -> RiskReport:
@@ -122,6 +126,10 @@ class ReviewAgent:
         self, clause: dict, clause_type: ClauseType, template
     ) -> Finding:
         """Compare a single clause to its template using Claude (run in thread)."""
+        cuad_examples = await self.search.search_cuad(
+            CuadSearchRequest(query=clause["text"], clause_type=clause_type, top_k=4)
+        )
+
         loop = asyncio.get_event_loop()
         result = await loop.run_in_executor(
             self._executor,
@@ -130,6 +138,7 @@ class ReviewAgent:
             clause_type.value,
             template.template_text,
             template.key_requirements,
+            [example.model_dump(mode="json") for example in cuad_examples.examples],
         )
 
         try:

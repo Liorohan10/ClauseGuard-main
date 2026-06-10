@@ -50,17 +50,17 @@ export const ALL_CLAUSE_TYPES: ClauseType[] = [
 ];
 
 export function riskScoreColor(score: number): string {
-  const normalized = score > 10 ? score / 10 : score;
-  if (normalized <= 3) return '#22c55e';
-  if (normalized <= 5) return '#eab308';
-  if (normalized <= 7) return '#f97316';
+  const safety = score > 10 ? score : score * 10;
+  if (safety >= 80) return '#22c55e';
+  if (safety >= 60) return '#eab308';
+  if (safety >= 40) return '#f97316';
   return '#ef4444';
 }
 
 export function riskScoreLabel(score: number): string {
-  const normalized = score > 10 ? score / 10 : score;
-  if (normalized <= 3) return 'Low Risk';
-  if (normalized <= 5) return 'Medium Risk';
-  if (normalized <= 7) return 'High Risk';
+  const safety = score > 10 ? score : score * 10;
+  if (safety >= 80) return 'Low Risk';
+  if (safety >= 60) return 'Medium Risk';
+  if (safety >= 40) return 'High Risk';
   return 'Critical Risk';
 }

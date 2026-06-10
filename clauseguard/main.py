@@ -51,6 +51,7 @@ async def lifespan(app: FastAPI):
     app.state.review_agent = ReviewAgent(
         claude_service=claude_service,
         es_service=es_service,
+        search_agent=app.state.search_agent,
     )
 
     logger.info("ClauseGuard is ready")
@@ -81,4 +82,10 @@ app.include_router(api_router)
 
 def run():
     import uvicorn
-    uvicorn.run("clauseguard.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(
+        "clauseguard.main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,
+        reload_excludes=[settings.openai_dump_dir],
+    )
