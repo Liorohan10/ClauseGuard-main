@@ -6,6 +6,7 @@ import { CLAUSE_TYPE_LABELS, CLAUSE_TYPE_COLORS, SEVERITY_COLORS } from '@/lib/c
 import type { Finding, Severity } from '@/types/api';
 
 const SEVERITY_ICONS: Record<Severity, React.ComponentType<{ className?: string }>> = {
+  critical: AlertCircle,
   high: AlertCircle,
   medium: AlertTriangle,
   low: Info,

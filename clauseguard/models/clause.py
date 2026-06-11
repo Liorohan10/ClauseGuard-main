@@ -4,6 +4,7 @@ from ._compat import StrEnum
 
 
 class ClauseType(StrEnum):
+    # General clause types (retained)
     INDEMNITY = "indemnity"
     LIABILITY_CAP = "liability_cap"
     TERMINATION = "termination"
@@ -13,6 +14,13 @@ class ClauseType(StrEnum):
     DATA_PROTECTION = "data_protection"
     FORCE_MAJEURE = "force_majeure"
     OTHER = "other"
+    # Specialized — Data Privacy & Export Control
+    EXPORT_CONTROL = "export_control"
+    SANCTIONS = "sanctions"
+    DATA_TRANSFER = "data_transfer"          # GDPR Chapter V / cross-border transfer clauses
+    SUBPROCESSOR = "subprocessor"            # Sub-processor authorization and flow-down
+    BREACH_NOTIFICATION = "breach_notification"  # Incident/breach notification obligations
+    DATA_SUBJECT_RIGHTS = "data_subject_rights"  # Data subject rights assistance clauses
 
 
 class ExtractedClause(BaseModel):

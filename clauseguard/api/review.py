@@ -3,12 +3,11 @@ from io import BytesIO
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Response
-from fastapi.responses import StreamingResponse
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, PatternFill
 
 from clauseguard.api.deps import get_es_service, get_openai_assistant
-from clauseguard.models.openai_legal import ContractReviewOutput
+from clauseguard.models.openai_legal import ContractReviewOutput, FinalDecision, DecisionOutcome
 from clauseguard.openai_assistant import OpenAILegalAssistant
 from clauseguard.services.elasticsearch_service import ElasticsearchService
 
@@ -18,13 +17,10 @@ router = APIRouter(prefix="/review", tags=["review"])
 def _build_review_record(contract_id: str, contract_filename: str, review: ContractReviewOutput) -> dict:
     reviewed_at = datetime.now(timezone.utc).isoformat()
     payload = review.model_dump(mode="json")
-    findings_count = (
-        len(review.clause_analyses)
-        + len(review.risk_assessments)
-        + len(review.compliance_findings)
-        + len(review.negotiation_strategies)
-        + len(review.missing_protections)
-    )
+
+    # Count only meaningful findings (privacy + export control compliance findings)
+    findings_count = len(review.compliance_findings) + len(review.missing_protections)
+
     return {
         "review_id": str(uuid4()),
         "contract_id": contract_id,
@@ -33,6 +29,12 @@ def _build_review_record(contract_id: str, contract_filename: str, review: Contr
         "contract_safety_score": review.contract_safety_score,
         "summary": review.summary,
         "findings_count": findings_count,
+        "export_control_triggered": review.export_control_triggered,
+        "final_decision_outcome": (
+            str(review.final_decision.outcome)
+            if review.final_decision
+            else "escalate"
+        ),
         "review": payload,
     }
 
@@ -63,7 +65,7 @@ def _review_from_record(record: dict) -> ContractReviewOutput:
 
 
 def _severity_rank(value: str) -> int:
-    return {"critical": 4, "high": 3, "medium": 2, "low": 1, "info": 0}.get(str(value).lower(), 0)
+    return {"critical": 5, "high": 4, "medium": 3, "low": 2, "info": 1}.get(str(value).lower(), 0)
 
 
 def _citation_text(page: int | None, section: str, clause_id: str) -> str:
@@ -75,68 +77,67 @@ def _citation_text(page: int | None, section: str, clause_id: str) -> str:
     return " · ".join(part for part in parts if part)
 
 
-def _export_rows(review: ContractReviewOutput) -> list[tuple[str, str, str, str, str, str]]:
-    rows: list[tuple[str, str, str, str, str, str]] = []
+def _law_list(laws: list[str]) -> str:
+    return "; ".join(laws) if laws else ""
 
+
+def _decision_label(review: ContractReviewOutput) -> str:
+    if review.final_decision and hasattr(review.final_decision, "outcome"):
+        return str(review.final_decision.outcome).replace("_", " ").upper()
+    return "ESCALATE"
+
+
+def _export_rows(review: ContractReviewOutput) -> list[tuple]:
+    """
+    Build rows for the XLSX export.
+    Columns: Issue ID | Domain | Clause/Section | Jurisdiction(s) | Finding/Risk | Risk Level |
+             Applicable Laws | Recommended Redline | Fallback Position
+    """
+    rows: list[tuple] = []
+
+    # Privacy and export-control compliance findings (spec sections 3 & 4)
     for item in review.compliance_findings:
-        rows.append(
-            (
-                _citation_text(item.source_page, item.source_section, item.source_clause_id) or item.requirement,
-                item.explanation,
-                item.severity.value,
-                item.requirement,
-                item.remediation,
-                item.remediation,
-            )
-        )
+        if str(item.status).lower() in ("pass", "not-applicable"):
+            continue  # Only export actionable findings
+        rows.append((
+            item.issue_id or "",
+            item.domain.upper() if hasattr(item, "domain") else "PRIVACY",
+            _citation_text(item.source_page, item.source_section, item.source_clause_id) or item.requirement,
+            ", ".join(item.jurisdictions) if item.jurisdictions else "",
+            item.explanation,
+            str(item.severity).upper(),
+            _law_list(item.applicable_laws),
+            item.remediation,
+            item.fallback_position,
+        ))
 
+    # Missing protections
     for item in review.missing_protections:
-        rows.append(
-            (
-                _citation_text(item.source_page, item.source_section, item.source_clause_id) or item.protection,
-                item.why_missing,
-                "high",
-                item.protection,
-                item.mitigation,
-                item.suggested_clause,
-            )
-        )
+        rows.append((
+            "",
+            (item.domain.upper() if hasattr(item, "domain") else "PRIVACY"),
+            _citation_text(item.source_page, item.source_section, item.source_clause_id) or item.protection,
+            "",
+            item.why_missing,
+            "HIGH",
+            _law_list(item.applicable_laws if hasattr(item, "applicable_laws") else []),
+            item.suggested_clause or item.mitigation,
+            item.mitigation,
+        ))
 
-    for item in review.risk_assessments:
-        rows.append(
-            (
-                _citation_text(item.source_page, item.source_section, item.source_clause_id) or item.risk_area,
-                item.issue,
-                item.severity.value,
-                item.risk_area,
-                item.mitigation,
-                item.mitigation,
-            )
-        )
-
-    for item in review.clause_analyses:
-        rows.append(
-            (
-                _citation_text(item.source_page, item.source_section, item.source_clause_id) or item.clause_name,
-                item.summary,
-                item.risk_level.value if hasattr(item.risk_level, "value") else str(item.risk_level),
-                item.clause_type,
-                item.impact,
-                "; ".join(item.recommendations) if item.recommendations else item.impact,
-            )
-        )
-
-    for item in review.negotiation_strategies:
-        rows.append(
-            (
-                _citation_text(item.source_page, item.source_section, item.source_clause_id) or item.objective,
-                item.rationale,
-                item.priority.value if hasattr(item.priority, "value") else str(item.priority),
-                item.objective,
-                item.proposed_language,
-                item.proposed_language,
-            )
-        )
+    # Proposed redlines (spec section 5)
+    for item in review.redline_suggestions:
+        rows.append((
+            item.issue_id or "",
+            item.domain.upper() if hasattr(item, "domain") else "PRIVACY",
+            item.clause_reference,
+            "",
+            "Proposed Redline",
+            "REDLINE",
+            _law_list(item.applicable_laws),
+            item.proposed_wording or item.drafting_instruction,
+            item.drafting_instruction if item.proposed_wording else "",
+        ))
 
     return rows
 
@@ -146,70 +147,111 @@ def _build_workbook(review: ContractReviewOutput, contract_filename: str, review
     ws = wb.active
     ws.title = "Compliance Report"
 
+    # Colour palette
     title_fill = PatternFill("solid", fgColor="0F243E")
     header_fill = PatternFill("solid", fgColor="2F5D8A")
     light_fill = PatternFill("solid", fgColor="F3F6FA")
     green_fill = PatternFill("solid", fgColor="D9EAD3")
     yellow_fill = PatternFill("solid", fgColor="FFF2CC")
     red_fill = PatternFill("solid", fgColor="F4CCCC")
+    critical_fill = PatternFill("solid", fgColor="8B0000")
+    blue_fill = PatternFill("solid", fgColor="C9DAF8")
 
-    ws.merge_cells("A1:F1")
-    ws["A1"] = "ENTERPRISE COMPLIANCE RISK ASSESSMENT REPORT"
-    ws["A1"].font = Font(color="FFFFFF", bold=True, size=16)
+    # Title
+    ws.merge_cells("A1:I1")
+    ws["A1"] = "DATA PRIVACY & EXPORT CONTROL COMPLIANCE REVIEW REPORT"
+    ws["A1"].font = Font(color="FFFFFF", bold=True, size=14)
     ws["A1"].fill = title_fill
     ws["A1"].alignment = Alignment(horizontal="center", vertical="center")
 
+    # Metadata rows
     ws["A3"] = "Contract Filename"
     ws["B3"] = contract_filename
-    ws["D3"] = "Compliance Score"
-    ws["E3"] = f"{review.contract_safety_score:.1f}%"
+    ws["E3"] = "Compliance Score"
+    ws["F3"] = f"{review.contract_safety_score}/100"
     ws["A4"] = "Audit Timestamp"
     ws["B4"] = reviewed_at
-    ws["D4"] = "Risk Score"
-    ws["E4"] = f"{100 - review.contract_safety_score:.1f}%"
+    ws["E4"] = "Final Decision"
+    ws["F4"] = _decision_label(review)
+    ws["A5"] = "Export Control"
+    ws["B5"] = "Triggered" if review.export_control_triggered else "Not Triggered"
 
-    for cell in ("A3", "A4", "D3", "D4"):
+    for cell in ("A3", "A4", "A5", "E3", "E4"):
         ws[cell].font = Font(bold=True)
-    ws["E3"].font = Font(bold=True, color="1F4E79")
-    ws["E4"].font = Font(bold=True, color="C00000")
+    ws["F3"].font = Font(bold=True, color="1F4E79")
+    ws["F4"].font = Font(bold=True, color="C00000")
 
-    ws["A6"] = "Detailed Compliance Findings Table"
-    ws["A6"].font = Font(bold=True, size=14)
+    # Section: Jurisdiction Profile
+    ws["A7"] = "Applicable Jurisdictions"
+    ws["A7"].font = Font(bold=True, size=12)
+
+    row_idx = 8
+    if review.jurisdiction_profile:
+        privacy_juris = [j.jurisdiction for j in review.jurisdiction_profile.privacy_jurisdictions]
+        ws[f"A{row_idx}"] = "Privacy Jurisdictions:"
+        ws[f"B{row_idx}"] = ", ".join(privacy_juris) if privacy_juris else "None identified"
+        ws[f"A{row_idx}"].font = Font(bold=True)
+        row_idx += 1
+
+        if review.export_control_triggered:
+            export_juris = [j.jurisdiction for j in review.jurisdiction_profile.export_control_jurisdictions]
+            ws[f"A{row_idx}"] = "Export Control Jurisdictions:"
+            ws[f"B{row_idx}"] = ", ".join(export_juris) if export_juris else "See findings"
+            ws[f"A{row_idx}"].font = Font(bold=True)
+            row_idx += 1
+
+    row_idx += 1
+
+    # Findings table header
+    ws[f"A{row_idx}"] = "Detailed Compliance Findings"
+    ws[f"A{row_idx}"].font = Font(bold=True, size=12)
+    row_idx += 1
 
     headers = [
+        "Issue ID",
+        "Domain",
         "Clause / Section",
-        "Risk Identified",
+        "Jurisdiction(s)",
+        "Finding",
         "Risk Level",
-        "Regulation",
-        "Control",
+        "Applicable Laws",
         "Recommended Redline / Mitigation",
+        "Fallback Position",
     ]
-    header_row = 8
+    header_row = row_idx
     for col, header in enumerate(headers, start=1):
         cell = ws.cell(row=header_row, column=col, value=header)
         cell.fill = header_fill
         cell.font = Font(color="FFFFFF", bold=True)
         cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
 
-    for row_idx, row in enumerate(_export_rows(review), start=header_row + 1):
+    data_start = header_row + 1
+    for row_offset, row in enumerate(_export_rows(review), start=data_start):
         for col_idx, value in enumerate(row, start=1):
-            cell = ws.cell(row=row_idx, column=col_idx, value=value)
+            cell = ws.cell(row=row_offset, column=col_idx, value=value)
             cell.alignment = Alignment(vertical="top", wrap_text=True)
-            if col_idx == 3:
-                if _severity_rank(value) >= 3:
+            if col_idx == 6:  # Risk Level column
+                sev = str(value).lower()
+                if sev == "critical":
+                    cell.fill = critical_fill
+                    cell.font = Font(color="FFFFFF", bold=True)
+                elif _severity_rank(sev) >= 4:
                     cell.fill = red_fill
-                elif _severity_rank(value) == 2:
+                elif _severity_rank(sev) == 3:
                     cell.fill = yellow_fill
+                elif sev == "redline":
+                    cell.fill = blue_fill
                 else:
                     cell.fill = green_fill
-            elif row_idx % 2 == 0:
+            elif row_offset % 2 == 0:
                 cell.fill = light_fill
 
-    widths = [28, 52, 14, 18, 22, 52]
+    # Column widths
+    widths = [12, 14, 30, 22, 52, 12, 30, 52, 40]
     for idx, width in enumerate(widths, start=1):
         ws.column_dimensions[chr(64 + idx)].width = width
 
-    ws.freeze_panes = "A9"
+    ws.freeze_panes = f"A{data_start}"
     ws.sheet_view.showGridLines = False
 
     buffer = BytesIO()
@@ -224,7 +266,7 @@ async def review_contract(
     assistant: OpenAILegalAssistant = Depends(get_openai_assistant),
     es: ElasticsearchService = Depends(get_es_service),
 ):
-    """Run AI contract review on a stored contract and return the structured review."""
+    """Run Data Privacy & Export Control compliance review on a stored contract."""
     contract = await es.get_contract(contract_id)
     if not contract:
         raise HTTPException(status_code=404, detail="Contract not found")
@@ -286,6 +328,8 @@ async def review_history(
             "contract_safety_score": review.get("contract_safety_score", 0),
             "summary": review.get("summary", ""),
             "findings_count": review.get("findings_count", 0),
+            "export_control_triggered": review.get("export_control_triggered", False),
+            "final_decision_outcome": review.get("final_decision_outcome", "escalate"),
         }
         for review in reviews
     ]
@@ -304,7 +348,7 @@ async def export_review_xlsx(
     reviewed_at = record.get("reviewed_at", "")
     contract_filename = record.get("contract_filename", contract_id)
     buffer = _build_workbook(review, contract_filename, reviewed_at)
-    filename = f"{contract_filename.rsplit('.', 1)[0]}_compliance_review.xlsx"
+    filename = f"{contract_filename.rsplit('.', 1)[0]}_privacy_export_review.xlsx"
     return Response(
         content=buffer.getvalue(),
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

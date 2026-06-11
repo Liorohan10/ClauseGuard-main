@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     es_clauses_index: str = "clauseguard-clauses"
     es_cuad_index: str = "clauseguard-cuad"
     openai_dump_dir: str = "openai_dumps"
+    tavily_api_key: str = ""
 
     @property
     def llm_api_key(self) -> str:
