@@ -7,7 +7,9 @@ import math
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, TypedDict
+from typing import Any, TypedDict, Literal
+import typing
+import types
 
 import fitz
 from openai import AsyncOpenAI
@@ -16,7 +18,6 @@ from langchain_elasticsearch import ElasticsearchStore
 from elasticsearch import Elasticsearch
 from langgraph.graph import StateGraph, END
 from pydantic import BaseModel, Field
-from sentence_transformers import CrossEncoder
 
 from clauseguard.config import settings
 from clauseguard.services.embedding_service import EmbeddingService
@@ -301,8 +302,6 @@ EXPANDED_QUERIES_MAP = {
         "internal audit program and export control compliance reviews"
     ]
 }
-
-
 
 
 # ----------------------------------------------------------------------
@@ -1598,7 +1597,7 @@ class OpenAILegalAssistant:
                         "compliance_findings": [],
                         "negotiation_strategies": [],
                         "missing_protections": [],
-                    },
+                    }
                 }
             compliance_findings = [
                 self._verified_to_compliance_finding(item)
@@ -1716,20 +1715,126 @@ class OpenAILegalAssistant:
         
         # Map findings to response classes
         clause_analyses = [ClauseAnalysis.model_validate(x) for x in decision.get("clause_analyses", [])]
-        risk_assessments = [RiskAssessment.model_validate(x) for x in decision.get("risk_assessments", [])]
-        compliance_findings = [ComplianceFinding.model_validate(x) for x in decision.get("compliance_findings", [])]
-        negotiation_strategies = [NegotiationStrategy.model_validate(x) for x in decision.get("negotiation_strategies", [])]
+        compliance_findings = []
+        for x in decision.get("compliance_findings", []):
+            try:
+                compliance_findings.append(ComplianceFinding.model_validate(x))
+            except Exception:
+                # Fallback if domain is not set
+                x["domain"] = "export_control" if "export" in str(x.get("requirement", "")).lower() else "privacy"
+                compliance_findings.append(ComplianceFinding.model_validate(x))
+                
         missing_protections = [MissingProtection.model_validate(x) for x in decision.get("missing_protections", [])]
         
+        # Link findings with sequential issue IDs and build redline suggestions
+        from clauseguard.models.openai_legal import RedlineSuggestion, FinalDecision, DecisionOutcome, JurisdictionProfile, JurisdictionFinding, AnalysisSeverity
+        
+        redline_suggestions = []
+        for idx, finding in enumerate(compliance_findings, start=1):
+            finding.domain = "export_control" if "export" in str(finding.requirement).lower() or finding.domain == "export_control" else "privacy"
+            status_lower = str(finding.status).lower().replace("_", "-")
+            if status_lower in ("fail", "partial", "absent", "partially-present", "contradicted"):
+                issue_id = f"{'EXP' if finding.domain == 'export_control' else 'PRIV'}-{idx:03d}"
+                finding.issue_id = issue_id
+                redline_suggestions.append(RedlineSuggestion(
+                    issue_id=issue_id,
+                    domain="export_control" if finding.domain == "export_control" else "privacy",
+                    clause_reference=finding.target_clause or "Not provided",
+                    applicable_laws=finding.applicable_laws if finding.applicable_laws else ([finding.regulatory_basis] if finding.regulatory_basis else []),
+                    proposed_wording=finding.remediation or "",
+                    drafting_instruction=finding.remediation or "Remediate finding."
+                ))
+            else:
+                finding.issue_id = f"{'EXP' if finding.domain == 'export_control' else 'PRIV'}-{idx:03d}"
+                
+        # Derive safety score
+        score = 100
+        for finding in compliance_findings:
+            sev = str(finding.severity).lower()
+            if finding.status not in ("pass", "not-applicable"):
+                if sev == "critical":
+                    score -= 15
+                elif sev == "high":
+                    score -= 8
+                elif sev == "medium":
+                    score -= 4
+                elif sev == "low":
+                    score -= 1
+        for clause in clause_analyses:
+            risk = str(clause.risk_level).lower()
+            if risk == "critical":
+                score -= 10
+            elif risk == "high":
+                score -= 5
+        contract_safety_score = max(0, min(100, score))
+        
+        # Derive final decision
+        has_critical = any(f.severity == AnalysisSeverity.CRITICAL for f in compliance_findings if f.status not in ("pass", "not-applicable"))
+        has_high_or_medium = any(f.severity in (AnalysisSeverity.HIGH, AnalysisSeverity.MEDIUM) for f in compliance_findings if f.status not in ("pass", "not-applicable"))
+        
+        if has_critical:
+            outcome = DecisionOutcome.FAIL
+            rationale = "The contract contains critical compliance findings that fail legal adequacy requirements."
+        elif has_high_or_medium:
+            outcome = DecisionOutcome.CONDITIONAL_PASS
+            rationale = "The contract is approved subject to resolving the highlighted compliance issues."
+        else:
+            outcome = DecisionOutcome.PASS
+            rationale = "The contract is approved with no significant data privacy or export control compliance issues."
+            
+        final_decision = FinalDecision(
+            outcome=outcome,
+            rationale=rationale,
+            conditions=[f.requirement for f in compliance_findings if f.status not in ("pass", "not-applicable")],
+            escalation_targets=["HUMAN PRIVACY COUNSEL"] if has_critical else []
+        )
+        
+        # Build JurisdictionProfile
+        j_profile_dict = final_state.get("jurisdiction_profile", {})
+        privacy_juris_list = []
+        if j_profile_dict.get("privacy_jurisdiction") and j_profile_dict.get("privacy_jurisdiction") != "None":
+            privacy_juris_list.append(JurisdictionFinding(
+                jurisdiction=j_profile_dict.get("privacy_jurisdiction", ""),
+                basis=j_profile_dict.get("rationale", ""),
+                privacy_laws=["GDPR"] if "EU" in str(j_profile_dict.get("privacy_jurisdiction")) else ["Australian Privacy Act"],
+                export_laws=[]
+            ))
+        export_juris_list = []
+        if j_profile_dict.get("export_jurisdiction") and j_profile_dict.get("export_jurisdiction") != "None":
+            export_juris_list.append(JurisdictionFinding(
+                jurisdiction=j_profile_dict.get("export_jurisdiction", ""),
+                basis=j_profile_dict.get("rationale", ""),
+                privacy_laws=[],
+                export_laws=["EU Export Control"] if "EU" in str(j_profile_dict.get("export_jurisdiction")) else ["Australia Export Control"]
+            ))
+            
+        jurisdiction_profile = JurisdictionProfile(
+            privacy_jurisdictions=privacy_juris_list,
+            export_control_jurisdictions=export_juris_list,
+            export_control_triggered=final_state.get("export_triggered", False),
+            trigger_rationale=j_profile_dict.get("rationale", "")
+        )
+        
+        # Build summary
+        summary = (
+            f"Review of {filename or 'contract'} completed. "
+            f"Safety score: {contract_safety_score}/100. "
+            f"Final decision: {str(outcome.value).upper().replace('_', ' ')}. "
+            f"{len(compliance_findings)} compliance findings evaluated."
+        )
+        
         return ContractReviewOutput(
-            summary=decision.get("summary", "No summary available."),
-            clause_analyses=clause_analyses,
-            risk_assessments=risk_assessments,
+            contract_safety_score=contract_safety_score,
+            summary=summary,
+            jurisdiction_profile=jurisdiction_profile,
             compliance_findings=compliance_findings,
-            negotiation_strategies=negotiation_strategies,
+            redline_suggestions=redline_suggestions,
+            final_decision=final_decision,
+            clause_analyses=clause_analyses,
             missing_protections=missing_protections,
+            export_control_triggered=final_state.get("export_triggered", False),
             source_filename=filename,
-            document_type="contract",
+            document_type="contract"
         )
 
     async def assess_risks(self, file_path: str) -> list[RiskAssessment]:

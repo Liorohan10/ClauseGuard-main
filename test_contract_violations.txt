@@ -1,0 +1,163 @@
+MASTER SERVICE AGREEMENT
+Dated: 1 June 2025
+
+PARTIES
+
+This Master Service Agreement ("Agreement") is entered into between:
+
+DataFlow Analytics Inc., a corporation incorporated in Delaware, United States, with its
+registered address at 450 Market Street, San Francisco, CA 94105, USA ("Provider"),
+
+AND
+
+Meridian Pharma GmbH, a company incorporated in Germany, with its registered address at
+Hauptstrasse 22, 10117 Berlin, Germany ("Customer").
+
+The Provider develops and operates an AI-powered data analytics platform ("Platform")
+which processes clinical trial data, patient health information, genomic data, and employee
+performance data on behalf of customers. The Platform uses proprietary machine learning
+models and encryption modules to analyse datasets. The Provider's engineering team is
+located in Bangalore, India, and data is hosted in AWS infrastructure in Singapore.
+Support and maintenance is provided remotely from the Bangalore engineering office.
+The Provider's sales and business development team operates across Dubai (mainland),
+South Korea, Brazil, and Colombia.
+
+RECITALS
+
+WHEREAS the Customer wishes to use the Provider's Platform for processing patient health
+data collected from clinical trial participants across Germany, France, the Netherlands,
+and the United Kingdom;
+
+WHEREAS the Provider wishes to provide such services;
+
+NOW THEREFORE the parties agree as follows:
+
+
+SECTION 1 — SERVICES
+
+1.1  The Provider shall make the Platform available to the Customer on a subscription basis.
+
+1.2  The Customer acknowledges that the Platform processes personal data as part of its
+     core functionality.
+
+1.3  The Provider may use customer data, including personal information, for the purposes
+     of improving its machine learning models, training algorithms, benchmarking platform
+     performance, and developing new product features without restriction.
+
+1.4  The Provider may share aggregated and non-aggregated customer data, including patient
+     health records and employee data, with its affiliates, group companies, third-party
+     analytics vendors, and research partners globally for any business purpose.
+
+1.5  The Provider is not responsible for how subcontractors or third parties handle data
+     received from or through the Platform.
+
+
+SECTION 2 — PAYMENT
+
+2.1  The Customer shall pay the Provider USD 120,000 per annum, invoiced quarterly.
+
+2.2  All payments are non-refundable.
+
+
+SECTION 3 — DATA
+
+3.1  Both parties are users of the data and may each independently determine the purposes
+     and means of processing.
+
+3.2  The Provider shall take reasonable efforts to protect customer data using
+     industry-standard practices.
+
+3.3  The Provider may engage any subcontractors, vendors, affiliates, or cloud providers
+     it considers necessary without prior notice to or approval from the Customer.
+
+3.4  The Provider's subcontractors in India, Singapore, the Philippines, and China may
+     access full unredacted datasets including patient health data, biometric identifiers,
+     and genomic sequences for support and maintenance purposes.
+
+3.5  At the end of the Agreement, the Provider shall retain customer data indefinitely for
+     its own internal analytical and commercial purposes.
+
+
+SECTION 4 — CONFIDENTIALITY
+
+4.1  Each party agrees to keep the other's confidential business information confidential.
+
+4.2  The Provider may disclose customer data, including personal data and health records,
+     to any government authority, law enforcement agency, or regulatory body upon request,
+     without notifying the Customer and without minimising the scope of disclosure.
+
+
+SECTION 5 — SECURITY
+
+5.1  The Provider represents that it takes security seriously and will use commercially
+     reasonable security measures to protect customer data.
+
+5.2  No specific technical or organisational measures are guaranteed.
+
+5.3  The Provider's security posture is not subject to audit, inspection, or third-party
+     certification requirements.
+
+
+SECTION 6 — TECHNOLOGY AND EXPORT
+
+6.1  The Platform incorporates 256-bit AES encryption, RSA-4096 public key cryptography,
+     and proprietary cryptographic protocols developed by the Provider's India-based team.
+
+6.2  The Platform, including its encryption modules and source code, is made available
+     to the Customer and its affiliates globally, including access by personnel in
+     Iran, Russia, and Cuba for regional operations.
+
+6.3  The Provider's engineering team provides remote technical support, debug access,
+     and source code sharing across all jurisdictions in which the Customer operates,
+     without restriction.
+
+6.4  Neither party represents or warrants that the use, export, or re-export of the
+     Platform, encryption technology, or related technical data is licensed or compliant
+     with applicable export control laws.
+
+6.5  The Customer shall hold the Provider harmless from any export control violations.
+
+
+SECTION 7 — INTELLECTUAL PROPERTY
+
+7.1  All intellectual property in the Platform remains with the Provider.
+
+7.2  The Customer grants the Provider a perpetual, irrevocable, royalty-free licence to
+     use all data processed through the Platform, including derived insights, model
+     weights, and patient health trends, for the Provider's own business purposes.
+
+
+SECTION 8 — LIMITATION OF LIABILITY
+
+8.1  The Provider's total liability under this Agreement shall not exceed USD 500.
+
+8.2  Neither party shall be liable for any data breach, privacy violation, or regulatory
+     fine arising from processing under this Agreement.
+
+
+SECTION 9 — GOVERNING LAW AND DISPUTES
+
+9.1  This Agreement shall be governed by the laws of Delaware, United States.
+
+9.2  All disputes shall be resolved by arbitration in San Francisco, California.
+
+
+SECTION 10 — GENERAL
+
+10.1 This Agreement constitutes the entire agreement between the parties.
+
+10.2 There are no schedules, annexures, or data processing agreements attached to or
+     incorporated into this Agreement.
+
+10.3 This Agreement may be amended only by written agreement of both parties.
+
+
+Signed for and on behalf of DataFlow Analytics Inc.:
+Name:  _______________________
+Title: _______________________
+Date:  _______________________
+
+Signed for and on behalf of Meridian Pharma GmbH:
+Name:  _______________________
+Title: _______________________
+Date:  _______________________
