@@ -112,7 +112,6 @@ class ReviewAgent:
         return RiskReport(
             contract_id=contract_id,
             contract_filename=contract.get("filename", ""),
-            overall_risk_score=summary_result.get("overall_risk_score", 5.0),
             summary=summary_result.get("summary", ""),
             findings=findings,
             coverage=coverage,

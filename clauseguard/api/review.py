@@ -30,7 +30,6 @@ def _build_review_record(contract_id: str, contract_filename: str, review: Contr
         "contract_id": contract_id,
         "contract_filename": contract_filename,
         "reviewed_at": reviewed_at,
-        "contract_safety_score": review.contract_safety_score,
         "summary": review.summary,
         "findings_count": findings_count,
         "review": payload,
@@ -161,17 +160,11 @@ def _build_workbook(review: ContractReviewOutput, contract_filename: str, review
 
     ws["A3"] = "Contract Filename"
     ws["B3"] = contract_filename
-    ws["D3"] = "Compliance Score"
-    ws["E3"] = f"{review.contract_safety_score:.1f}%"
     ws["A4"] = "Audit Timestamp"
     ws["B4"] = reviewed_at
-    ws["D4"] = "Risk Score"
-    ws["E4"] = f"{100 - review.contract_safety_score:.1f}%"
 
-    for cell in ("A3", "A4", "D3", "D4"):
+    for cell in ("A3", "A4"):
         ws[cell].font = Font(bold=True)
-    ws["E3"].font = Font(bold=True, color="1F4E79")
-    ws["E4"].font = Font(bold=True, color="C00000")
 
     ws["A6"] = "Detailed Compliance Findings Table"
     ws["A6"].font = Font(bold=True, size=14)
@@ -283,7 +276,6 @@ async def review_history(
             "review_id": review.get("review_id"),
             "reviewed_at": review.get("reviewed_at"),
             "contract_filename": review.get("contract_filename", contract_id),
-            "contract_safety_score": review.get("contract_safety_score", 0),
             "summary": review.get("summary", ""),
             "findings_count": review.get("findings_count", 0),
         }

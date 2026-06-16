@@ -105,13 +105,11 @@ def generate_legal_pdf(
     metrics = Table(
         [
             [
-                Paragraph("Safety Score", styles["MetricLabel"]),
-                Paragraph(f"{data.contract_safety_score}/100", styles["MetricValue"]),
                 Paragraph("Document", styles["MetricLabel"]),
                 Paragraph(data.source_filename or "Unknown", styles["BodyText"]),
             ]
         ],
-        colWidths=[1.2 * inch, 1.0 * inch, 1.0 * inch, 3.8 * inch],
+        colWidths=[1.2 * inch, 5.8 * inch],
     )
     metrics.setStyle(
         TableStyle(

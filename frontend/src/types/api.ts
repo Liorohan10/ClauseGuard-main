@@ -32,7 +32,6 @@ export interface ContractMetadata {
   clause_types_found: ClauseType[];
   text_length: number;
   latest_reviewed_at?: string | null;
-  latest_review_score?: number | null;
   latest_review_summary?: string;
   latest_review_id?: string | null;
   latest_review_finding_count?: number;
@@ -42,7 +41,6 @@ export interface ReviewSummary {
   review_id: string;
   reviewed_at: string;
   contract_filename: string;
-  contract_safety_score: number;
   summary: string;
   findings_count: number;
 }
@@ -93,7 +91,6 @@ export interface Finding {
 export interface RiskReport {
   contract_id: string;
   contract_filename: string;
-  overall_risk_score: number;
   summary: string;
   findings: Finding[];
   coverage: Record<string, boolean>;
@@ -113,6 +110,10 @@ export interface ClauseAnalysis {
   risk_level: RiskLevel;
   impact: string;
   recommendations: string[];
+  target_clause?: string;
+  contract_excerpt?: string;
+  regulatory_basis?: string;
+  deviation_gap?: string;
   source_page?: number | null;
   source_section?: string;
   source_clause_id?: string;
@@ -126,6 +127,10 @@ export interface RiskAssessment {
   issue: string;
   rationale: string;
   mitigation: string;
+  target_clause?: string;
+  contract_excerpt?: string;
+  regulatory_basis?: string;
+  deviation_gap?: string;
   source_page?: number | null;
   source_section?: string;
   source_clause_id?: string;
@@ -140,6 +145,10 @@ export interface ComplianceFinding {
   explanation: string;
   evidence: string[];
   remediation: string;
+  target_clause?: string;
+  contract_excerpt?: string;
+  regulatory_basis?: string;
+  deviation_gap?: string;
   source_page?: number | null;
   source_section?: string;
   source_clause_id?: string;
@@ -153,6 +162,10 @@ export interface NegotiationStrategy {
   proposed_language: string;
   rationale: string;
   priority: Severity;
+  target_clause?: string;
+  contract_excerpt?: string;
+  regulatory_basis?: string;
+  deviation_gap?: string;
   source_page?: number | null;
   source_section?: string;
   source_clause_id?: string;
@@ -166,6 +179,10 @@ export interface MissingProtection {
   risk: string;
   mitigation: string;
   suggested_clause: string;
+  target_clause?: string;
+  contract_excerpt?: string;
+  regulatory_basis?: string;
+  deviation_gap?: string;
   source_page?: number | null;
   source_section?: string;
   source_clause_id?: string;
@@ -174,7 +191,6 @@ export interface MissingProtection {
 }
 
 export interface ContractReviewOutput {
-  contract_safety_score: number;
   summary: string;
   clause_analyses: ClauseAnalysis[];
   risk_assessments: RiskAssessment[];

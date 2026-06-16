@@ -25,7 +25,6 @@ class Finding(BaseModel):
 class RiskReport(BaseModel):
     contract_id: str
     contract_filename: str = ""
-    overall_risk_score: float = Field(default=0.0, ge=0.0, le=10.0)
     summary: str = ""
     findings: list[Finding] = Field(default_factory=list)
     coverage: dict[str, bool] = Field(

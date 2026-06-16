@@ -17,7 +17,6 @@ CONTRACTS_MAPPINGS = {
         "clause_types_found": {"type": "keyword"},
         "text_length": {"type": "integer"},
         "latest_reviewed_at": {"type": "date"},
-        "latest_review_score": {"type": "integer"},
         "latest_review_summary": {"type": "text"},
         "latest_review_id": {"type": "keyword"},
         "latest_review_finding_count": {"type": "integer"},
@@ -68,10 +67,38 @@ REVIEWS_MAPPINGS = {
         "contract_id": {"type": "keyword"},
         "contract_filename": {"type": "keyword"},
         "reviewed_at": {"type": "date"},
-        "contract_safety_score": {"type": "integer"},
         "summary": {"type": "text"},
         "findings_count": {"type": "integer"},
         "review": {"type": "object", "enabled": True},
+    }
+}
+
+OFFICIAL_REGS_MAPPINGS = {
+    "properties": {
+        "text": {"type": "text", "analyzer": "legal_analyzer"},
+        "vector": {
+            "type": "dense_vector",
+            "dims": 384,
+            "index": True,
+            "similarity": "cosine",
+        },
+        "metadata": {
+            "properties": {
+                "doc_id": {"type": "keyword"},
+                "parent_id": {"type": "keyword"},
+                "source_name": {"type": "keyword"},
+                "jurisdiction": {"type": "keyword"},
+                "domain": {"type": "keyword"},
+                "article_number": {"type": "keyword"},
+                "provision_type": {"type": "keyword"},
+                "full_hierarchy": {"type": "keyword"},
+                "parent_text": {"type": "text", "analyzer": "legal_analyzer"},
+                "parent_title": {"type": "text", "analyzer": "legal_analyzer"},
+                "parent_summary": {"type": "text", "analyzer": "legal_analyzer"},
+                "child_text": {"type": "text", "analyzer": "legal_analyzer"},
+                "child_idx": {"type": "integer"},
+            }
+        },
     }
 }
 
@@ -117,6 +144,7 @@ class ElasticsearchService:
         self.clauses_index = settings.es_clauses_index
         self.cuad_index = settings.es_cuad_index
         self.reviews_index = f"{self.contracts_index}-reviews"
+        self.official_regs_index = "clauseguard-official-regs"
 
     async def ensure_indices(self) -> None:
         """Create indices if they don't exist."""
@@ -149,6 +177,14 @@ class ElasticsearchService:
             )
             logger.info("Created index: %s", self.reviews_index)
 
+        if not await self.es.indices.exists(index=self.official_regs_index):
+            await self.es.indices.create(
+                index=self.official_regs_index,
+                settings=CLAUSES_SETTINGS,
+                mappings=OFFICIAL_REGS_MAPPINGS,
+            )
+            logger.info("Created index: %s", self.official_regs_index)
+
     async def index_contract(self, contract: dict) -> None:
         """Index a contract metadata document."""
         await self.es.index(
@@ -165,7 +201,6 @@ class ElasticsearchService:
             retry_on_conflict=5,
             doc={
                 "latest_reviewed_at": review_doc.get("reviewed_at"),
-                "latest_review_score": review_doc.get("contract_safety_score"),
                 "latest_review_summary": review_doc.get("summary", ""),
                 "latest_review_id": review_doc.get("review_id"),
                 "latest_review_finding_count": review_doc.get("findings_count", 0),

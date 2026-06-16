@@ -34,6 +34,10 @@ class ClauseAnalysis(SchemaBase):
     risk_level: RiskLevel = Field(description="Risk classification for the clause.")
     impact: str = Field(description="Practical business or legal impact.")
     recommendations: list[str] = Field(default_factory=list, description="Actionable recommendations.")
+    target_clause: str = Field(default="", description="The specific section/paragraph number from the uploaded contract.")
+    contract_excerpt: str = Field(default="", description="The exact verbatim text being flagged.")
+    regulatory_basis: str = Field(default="", description="The specific Article/Section from the official RAG context that this clause violates.")
+    deviation_gap: str = Field(default="", description="A direct comparison: 'Contract says [X], but Regulation [Y] requires [Z].'")
     source_page: int | None = Field(default=None, ge=1, description="Page number where the clause appears.")
     source_section: str = Field(default="", description="Section or heading where the clause appears.")
     source_clause_id: str = Field(default="", description="Internal clause identifier from the source document.")
@@ -47,6 +51,10 @@ class RiskAssessment(SchemaBase):
     issue: str = Field(description="Short description of the issue.")
     rationale: str = Field(description="Why the issue matters.")
     mitigation: str = Field(description="Recommended mitigation approach.")
+    target_clause: str = Field(default="", description="The specific section/paragraph number from the uploaded contract.")
+    contract_excerpt: str = Field(default="", description="The exact verbatim text being flagged.")
+    regulatory_basis: str = Field(default="", description="The specific Article/Section from the official RAG context that this clause violates.")
+    deviation_gap: str = Field(default="", description="A direct comparison: 'Contract says [X], but Regulation [Y] requires [Z].'")
     source_page: int | None = Field(default=None, ge=1, description="Page number where the issue is sourced.")
     source_section: str = Field(default="", description="Section or heading where the issue appears.")
     source_clause_id: str = Field(default="", description="Internal clause identifier from the source document.")
@@ -61,6 +69,10 @@ class ComplianceFinding(SchemaBase):
     explanation: str = Field(description="Plain-language explanation of the result.")
     evidence: list[str] = Field(default_factory=list, description="Supporting evidence from the contract.")
     remediation: str = Field(description="Suggested remediation.")
+    target_clause: str = Field(default="", description="The specific section/paragraph number from the uploaded contract.")
+    contract_excerpt: str = Field(default="", description="The exact verbatim text being flagged.")
+    regulatory_basis: str = Field(default="", description="The specific Article/Section from the official RAG context that this clause violates.")
+    deviation_gap: str = Field(default="", description="A direct comparison: 'Contract says [X], but Regulation [Y] requires [Z].'")
     source_page: int | None = Field(default=None, ge=1, description="Page number where the compliance issue is sourced.")
     source_section: str = Field(default="", description="Section or heading for the compliance issue.")
     source_clause_id: str = Field(default="", description="Internal clause identifier from the source document.")
@@ -74,6 +86,10 @@ class NegotiationStrategy(SchemaBase):
     proposed_language: str = Field(description="Suggested replacement or addition language.")
     rationale: str = Field(description="Reason the proposed language improves the deal.")
     priority: AnalysisSeverity = Field(description="Priority level for the negotiation point.")
+    target_clause: str = Field(default="", description="The specific section/paragraph number from the uploaded contract.")
+    contract_excerpt: str = Field(default="", description="The exact verbatim text being flagged.")
+    regulatory_basis: str = Field(default="", description="The specific Article/Section from the official RAG context that this clause violates.")
+    deviation_gap: str = Field(default="", description="A direct comparison: 'Contract says [X], but Regulation [Y] requires [Z].'")
     source_page: int | None = Field(default=None, ge=1, description="Page number where the negotiation point is sourced.")
     source_section: str = Field(default="", description="Section or heading for the negotiation point.")
     source_clause_id: str = Field(default="", description="Internal clause identifier from the source document.")
@@ -87,6 +103,10 @@ class MissingProtection(SchemaBase):
     risk: str = Field(description="Resulting exposure from the gap.")
     mitigation: str = Field(description="How to close the gap.")
     suggested_clause: str = Field(description="Draft clause language or insertion guidance.")
+    target_clause: str = Field(default="", description="The specific section/paragraph number from the uploaded contract.")
+    contract_excerpt: str = Field(default="", description="The exact verbatim text being flagged.")
+    regulatory_basis: str = Field(default="", description="The specific Article/Section from the official RAG context that this clause violates.")
+    deviation_gap: str = Field(default="", description="A direct comparison: 'Contract says [X], but Regulation [Y] requires [Z].'")
     source_page: int | None = Field(default=None, ge=1, description="Page number where the gap is sourced.")
     source_section: str = Field(default="", description="Section or heading where the gap appears.")
     source_clause_id: str = Field(default="", description="Internal clause identifier from the source document.")
@@ -95,7 +115,6 @@ class MissingProtection(SchemaBase):
 
 
 class ContractReviewOutput(SchemaBase):
-    contract_safety_score: int = Field(ge=0, le=100, description="Overall safety score for the contract.")
     summary: str = Field(description="Executive summary of the contract analysis.")
     clause_analyses: list[ClauseAnalysis] = Field(default_factory=list)
     risk_assessments: list[RiskAssessment] = Field(default_factory=list)
@@ -126,9 +145,6 @@ class MissingProtectionResponse(SchemaBase):
     items: list[MissingProtection] = Field(default_factory=list)
 
 
-class SafetyScoreResponse(SchemaBase):
-    contract_safety_score: int = Field(ge=0, le=100)
-    summary: str = Field(description="Concise executive summary of the contract state.")
 
 
 class NDAGenerationOutput(SchemaBase):

@@ -13,7 +13,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { api } from '@/lib/api';
-import { RiskGauge } from '@/components/RiskGauge';
 import type { ContractReviewOutput, Severity } from '@/types/api';
 
 type RecommendationCard = {
@@ -162,23 +161,16 @@ export function ReviewPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[240px_1fr]">
-        <Card className="flex items-center justify-center">
-          <CardContent className="p-8">
-            <RiskGauge score={report.contract_safety_score} />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              Executive Summary
-            </h2>
-            <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed">
-              {report.summary || 'No summary available.'}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <Card>
+        <CardContent className="p-6">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            Executive Summary
+          </h2>
+          <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed">
+            {report.summary || 'No summary available.'}
+          </p>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <SeverityCard

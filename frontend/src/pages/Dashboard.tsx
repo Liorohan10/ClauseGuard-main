@@ -162,9 +162,6 @@ export function Dashboard() {
                           <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-700">
                             Reviewed
                           </Badge>
-                          <span className="text-xs text-muted-foreground">
-                            {c.latest_review_score ?? 0}% score
-                          </span>
                           {c.latest_review_finding_count ? (
                             <span className="text-[11px] text-muted-foreground">
                               {c.latest_review_finding_count} findings

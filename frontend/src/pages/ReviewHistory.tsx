@@ -86,7 +86,7 @@ export function ReviewHistoryPage() {
                 <div className="space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-700">
-                      {review.contract_safety_score}% safety
+                      Reviewed
                     </Badge>
                     <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
                       <Clock3 className="h-3.5 w-3.5" />

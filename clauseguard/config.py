@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     openai_model: str = "gpt-4o-mini"
     openai_vision_model: str = "gpt-4o"
     elasticsearch_url: str = "http://localhost:9200"
+    tavily_api_key: str = ""
     embedding_model: str = "all-MiniLM-L6-v2"
     es_contracts_index: str = "clauseguard-contracts"
     es_clauses_index: str = "clauseguard-clauses"
