@@ -1,27 +1,20 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import {
+  AlertCircle,
   AlertTriangle,
   ArrowLeft,
-  AlertCircle,
-  Sparkles,
-  MessageSquareQuote,
   Download,
   RefreshCw,
+  ShieldCheck,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { api } from '@/lib/api';
-import type { ContractReviewOutput, Severity } from '@/types/api';
+import type { ComplianceFinding, ContractReviewOutput } from '@/types/api';
 
-type RecommendationCard = {
-  title: string;
-  subtitle?: string;
-  body: string;
-  recommendation: string;
-  citation?: string;
-};
+type ReviewIssue = ComplianceFinding & { area: 'privacy' | 'export' };
 
 export function ReviewPage() {
   const { id } = useParams<{ id: string }>();
@@ -52,7 +45,7 @@ export function ReviewPage() {
         <div className="text-center">
           <p className="font-semibold">Running Compliance Review</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Analyzing clauses against templates... This may take a moment.
+            Checking data privacy and export control obligations.
           </p>
         </div>
       </div>
@@ -76,44 +69,12 @@ export function ReviewPage() {
     );
   }
 
-  const severityCounts = report.risk_assessments.reduce<Record<Severity, number>>(
-    (acc, item) => {
-      acc[item.severity] += 1;
-      return acc;
-    },
-    { high: 0, medium: 0, low: 0, info: 0 }
-  );
-
-  const recommendationItems: RecommendationCard[] = [
-    ...report.compliance_findings.map((item) => ({
-      title: item.requirement,
-      subtitle: `Compliance · ${item.severity}`,
-      body: item.explanation,
-      recommendation: item.remediation,
-      citation: citationLabel(item.source_page, item.source_section, item.source_clause_id, item.source_excerpt),
-    })),
-    ...report.risk_assessments.map((item) => ({
-      title: item.risk_area,
-      subtitle: `Risk · ${item.severity}`,
-      body: item.issue,
-      recommendation: item.mitigation,
-      citation: citationLabel(item.source_page, item.source_section, item.source_clause_id, item.source_excerpt),
-    })),
-    ...report.missing_protections.map((item) => ({
-      title: item.protection,
-      subtitle: 'Missing protection',
-      body: item.why_missing,
-      recommendation: item.suggested_clause || item.mitigation,
-      citation: citationLabel(item.source_page, item.source_section, item.source_clause_id, item.source_excerpt),
-    })),
-    ...report.negotiation_strategies.map((item) => ({
-      title: item.objective,
-      subtitle: `Negotiation · ${item.priority}`,
-      body: item.rationale,
-      recommendation: item.proposed_language,
-      citation: citationLabel(item.source_page, item.source_section, item.source_clause_id, item.source_excerpt),
-    })),
-  ];
+  const complianceIssues: ReviewIssue[] = report.compliance_findings
+    .filter(isActionableIssue)
+    .map((item) => ({ ...item, area: isExportControlFinding(item) ? 'export' : 'privacy' }));
+  const privacyIssues = complianceIssues.filter((item) => item.area === 'privacy');
+  const exportIssues = complianceIssues.filter((item) => item.area === 'export');
+  const nonIssueControls = report.compliance_findings.length - complianceIssues.length;
 
   const handleExport = async () => {
     if (!id) return;
@@ -173,34 +134,34 @@ export function ReviewPage() {
       </Card>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <SeverityCard
-          label="High Risks"
-          count={severityCounts.high}
+        <MetricCard
+          label="Data Privacy Issues"
+          count={privacyIssues.length}
           icon={AlertCircle}
           colorClass="border-l-red-500 bg-red-50/50"
           iconColor="text-red-500"
           countColor="text-red-600"
         />
-        <SeverityCard
-          label="Medium Risks"
-          count={severityCounts.medium}
+        <MetricCard
+          label="Export Control Issues"
+          count={exportIssues.length}
           icon={AlertTriangle}
-          colorClass="border-l-red-500 bg-red-50/50"
+          colorClass="border-l-amber-500 bg-amber-50/50"
           iconColor="text-amber-500"
           countColor="text-amber-600"
         />
-        <SeverityCard
-          label="Clause Analyses"
-          count={report.clause_analyses.length}
-          icon={MessageSquareQuote}
+        <MetricCard
+          label="Passed / N/A"
+          count={Math.max(nonIssueControls, 0)}
+          icon={ShieldCheck}
           colorClass="border-l-blue-500 bg-blue-50/50"
           iconColor="text-blue-500"
           countColor="text-blue-600"
         />
-        <SeverityCard
-          label="Missing Protections"
-          count={report.missing_protections.length}
-          icon={Sparkles}
+        <MetricCard
+          label="Reviewed Controls"
+          count={report.compliance_findings.length}
+          icon={ShieldCheck}
           colorClass="border-l-emerald-500 bg-emerald-50/50"
           iconColor="text-emerald-500"
           countColor="text-emerald-600"
@@ -215,116 +176,58 @@ export function ReviewPage() {
           <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <ProfileItem label="Document Type" value={report.document_type} />
             <ProfileItem label="Source File" value={report.source_filename || 'Unknown'} />
-            <ProfileItem label="Risk Items" value={String(report.risk_assessments.length)} />
-            <ProfileItem label="Compliance Items" value={String(report.compliance_findings.length)} />
+            <ProfileItem label="Data Privacy Issues" value={String(privacyIssues.length)} />
+            <ProfileItem label="Export Control Issues" value={String(exportIssues.length)} />
           </div>
         </CardContent>
       </Card>
 
-      <SectionList
-        title="Recommended Changes"
-        items={recommendationItems}
-        emptyMessage="No recommendations returned."
-        renderItem={(item) => (
-          <SimpleItem
-            title={item.title}
-            subtitle={item.subtitle}
-            body={item.body}
-            note={item.recommendation}
-            citation={item.citation}
-          />
-        )}
+      <IssueSection
+        title="Data Privacy Issues"
+        items={privacyIssues}
+        emptyMessage="No data privacy issues returned."
       />
 
-      <SectionList
-        title="Clause Analyses"
-        items={report.clause_analyses}
-        emptyMessage="No clause analyses returned."
-        renderItem={(item) => (
-          <SimpleItem
-            title={item.clause_name}
-            subtitle={`${item.clause_type} · ${item.risk_level}`}
-            body={item.summary}
-            note={item.impact}
-            citation={citationLabel(item.source_page, item.source_section, item.source_clause_id, item.source_excerpt)}
-            actions={item.recommendations}
-          />
-        )}
-      />
-
-      <SectionList
-        title="Risk Assessments"
-        items={report.risk_assessments}
-        emptyMessage="No risk assessments returned."
-        renderItem={(item) => (
-          <SimpleItem
-            title={item.risk_area}
-            subtitle={item.severity}
-            body={item.issue}
-            note={item.mitigation}
-            citation={citationLabel(item.source_page, item.source_section, item.source_clause_id, item.source_excerpt)}
-          />
-        )}
-      />
-
-      <SectionList
-        title="Compliance Findings"
-        items={report.compliance_findings}
-        emptyMessage="No compliance findings returned."
-        renderItem={(item) => (
-          <SimpleItem
-            title={item.requirement}
-            subtitle={`${item.status} · ${item.severity}`}
-            body={item.explanation}
-            note={item.remediation}
-            citation={citationLabel(item.source_page, item.source_section, item.source_clause_id, item.source_excerpt)}
-            actions={item.evidence}
-          />
-        )}
-      />
-
-      <SectionList
-        title="Negotiation Strategies"
-        items={report.negotiation_strategies}
-        emptyMessage="No negotiation strategies returned."
-        renderItem={(item) => (
-          <SimpleItem
-            title={item.objective}
-            subtitle={item.priority}
-            body={item.rationale}
-            note={item.proposed_language}
-            citation={citationLabel(item.source_page, item.source_section, item.source_clause_id, item.source_excerpt)}
-          />
-        )}
-      />
-
-      <SectionList
-        title="Missing Protections"
-        items={report.missing_protections}
-        emptyMessage="No missing protections returned."
-        renderItem={(item) => (
-          <SimpleItem
-            title={item.protection}
-            subtitle={item.confidence > 0 ? `${Math.round(item.confidence * 100)}% confidence` : ''}
-            body={item.why_missing}
-            note={item.mitigation}
-            citation={citationLabel(item.source_page, item.source_section, item.source_clause_id, item.source_excerpt)}
-            actions={[item.suggested_clause].filter(Boolean)}
-          />
-        )}
+      <IssueSection
+        title="Export Control Issues"
+        items={exportIssues}
+        emptyMessage="No export control issues returned."
       />
     </div>
   );
 }
 
-function citationLabel(page?: number | null, section?: string, clauseId?: string, excerpt?: string) {
-  const parts = [page ? `p. ${page}` : '', section ? `sec. ${section}` : '', clauseId ? `clause ${clauseId}` : ''].filter(Boolean);
-  const base = parts.join(' · ');
-  if (!excerpt) return base;
-  return base ? `${base} · ${excerpt}` : excerpt;
+function isActionableIssue(item: ComplianceFinding) {
+  const status = item.status.toLowerCase().replace('_', '-');
+  return status === 'fail' || status === 'partial' || status === 'absent' || status === 'partially-present' || status === 'contradicted';
 }
 
-function SeverityCard({
+function isExportControlFinding(item: ComplianceFinding) {
+  const haystack = `${item.requirement} ${item.explanation} ${item.regulatory_basis ?? ''}`.toLowerCase();
+  return [
+    'export',
+    'dual-use',
+    'dual use',
+    'sanction',
+    'restricted part',
+    'denied part',
+    'end-use',
+    'end user',
+    'license',
+    'technology control',
+    'technical data',
+    'wmd',
+  ].some((term) => haystack.includes(term));
+}
+
+function citationLabel(page?: number | null, section?: string, clauseId?: string, excerpt?: string) {
+  const parts = [page ? `p. ${page}` : '', section ? `sec. ${section}` : '', clauseId ? `clause ${clauseId}` : ''].filter(Boolean);
+  const base = parts.join(' / ');
+  if (!excerpt) return base;
+  return base ? `${base} / ${excerpt}` : excerpt;
+}
+
+function MetricCard({
   label,
   count,
   icon: Icon,
@@ -361,16 +264,14 @@ function ProfileItem({ label, value }: { label: string; value: string }) {
   );
 }
 
-function SectionList<T>({
+function IssueSection({
   title,
   items,
   emptyMessage,
-  renderItem,
 }: {
   title: string;
-  items: T[];
+  items: ReviewIssue[];
   emptyMessage: string;
-  renderItem: (item: T) => React.ReactNode;
 }) {
   return (
     <div>
@@ -382,7 +283,7 @@ function SectionList<T>({
       ) : (
         <div className="space-y-4">
           {items.map((item, index) => (
-            <div key={index}>{renderItem(item)}</div>
+            <IssueItem key={`${item.requirement}-${index}`} item={item} />
           ))}
         </div>
       )}
@@ -390,40 +291,59 @@ function SectionList<T>({
   );
 }
 
-function SimpleItem({
-  title,
-  subtitle,
-  body,
-  note,
-  actions,
-  citation,
-}: {
-  title: string;
-  subtitle?: string;
-  body: string;
-  note?: string;
-  actions?: string[];
-  citation?: string;
-}) {
+function IssueItem({ item }: { item: ReviewIssue }) {
+  const citation = citationLabel(item.source_page, item.source_section, item.source_clause_id, item.source_excerpt);
+  const clauseLabel = item.target_clause || item.source_section || 'Clause not identified';
+
   return (
     <Card>
       <CardContent className="space-y-4 p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h3 className="font-semibold">{title}</h3>
-            {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
+            <h3 className="font-semibold">{item.requirement}</h3>
+            <p className="text-sm text-muted-foreground">
+              {item.status} / {item.severity}
+            </p>
+          </div>
+          {item.regulatory_basis && (
+            <Badge variant="secondary" className="max-w-full whitespace-normal text-left">
+              {item.regulatory_basis}
+            </Badge>
+          )}
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="rounded-lg border bg-muted/20 p-3">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Identified Clause</p>
+            <p className="mt-1 text-sm font-medium">{clauseLabel}</p>
+          </div>
+          <div className="rounded-lg border bg-muted/20 p-3">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Section</p>
+            <p className="mt-1 text-sm font-medium">{item.source_section || 'Not provided'}</p>
           </div>
         </div>
-        <p className="text-sm leading-relaxed text-foreground">{body}</p>
+
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Issue Reasoning</p>
+          <p className="mt-1.5 text-sm leading-relaxed text-foreground">{item.explanation}</p>
+        </div>
+
+        {item.contract_excerpt && (
+          <blockquote className="rounded-lg border-l-4 border-muted-foreground/20 bg-muted/30 py-3 pl-4 pr-3 text-sm leading-relaxed text-muted-foreground">
+            {item.contract_excerpt}
+          </blockquote>
+        )}
+
+        {item.deviation_gap && (
+          <p className="rounded-lg bg-muted/40 p-3 text-sm text-muted-foreground">{item.deviation_gap}</p>
+        )}
+
         {citation && <p className="text-xs text-muted-foreground">Source: {citation}</p>}
-        {note && <p className="rounded-lg bg-muted/40 p-3 text-sm text-muted-foreground">{note}</p>}
-        {actions && actions.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {actions.map((action, index) => (
-              <Badge key={index} variant="secondary" className="max-w-full whitespace-normal text-left">
-                {action}
-              </Badge>
-            ))}
+
+        {item.remediation && (
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-emerald-700">Remediation</p>
+            <p className="mt-1.5 text-sm leading-relaxed text-emerald-900">{item.remediation}</p>
           </div>
         )}
       </CardContent>

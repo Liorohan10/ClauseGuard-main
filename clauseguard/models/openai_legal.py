@@ -79,6 +79,13 @@ class ComplianceFinding(SchemaBase):
     source_excerpt: str = Field(default="", description="Exact excerpt supporting the compliance finding.")
     confidence: float = Field(default=0.0, ge=0.0, le=1.0)
 
+    # vNext Hybrid Retrieval + Evidence-Grounded Legal Adequacy Review fields
+    control: str = Field(default="", description="Compliance control being reviewed.")
+    contract_sections: list[str] = Field(default_factory=list, description="Sections/paragraphs in the contract.")
+    contract_evidence: list[str] = Field(default_factory=list, description="Verbatim contract evidence excerpts.")
+    law_reference: str = Field(default="", description="Reference to the regulation.")
+
+
 
 class NegotiationStrategy(SchemaBase):
     objective: str = Field(description="Negotiation objective for the clause set.")

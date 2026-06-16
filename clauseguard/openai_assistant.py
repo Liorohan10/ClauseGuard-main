@@ -3,6 +3,8 @@ from __future__ import annotations
 import base64
 import json
 import logging
+import math
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, TypedDict
@@ -64,14 +66,255 @@ EXPORT_TESTS = [
 ]
 
 
+RETRIEVAL_MAPS = {
+    # Privacy Compliance Tests
+    "Legal Basis for Processing": {
+        "keywords": ["lawful", "basis", "processing", "legal basis", "consent", "legitimate interest", "contract performance"],
+        "concepts": ["lawful basis for processing", "processing legal grounds", "GDPR Article 6 requirements"]
+    },
+    "Consent Management": {
+        "keywords": ["consent", "withdraw", "withdrawal", "opt-in", "opt-out", "freely given"],
+        "concepts": ["consent withdrawal mechanisms", "obtaining user consent", "consent conditions"]
+    },
+    "Direct Marketing Restrictions": {
+        "keywords": ["marketing", "advertising", "opt-out", "promotional", "direct marketing", "objection"],
+        "concepts": ["unsolicited marketing communications", "direct marketing opt-out rights", "marketing restriction laws"]
+    },
+    "Cross-Border Safeguards (e.g. Standard Contractual Clauses)": {
+        "keywords": ["standard contractual clauses", "sccs", "transfer", "cross-border", "safeguards", "adequacy", "uk addendum", "framework", "third country"],
+        "concepts": ["international data transfer mechanisms", "transfer of personal data to third countries", "cross-border transfer safeguards"]
+    },
+    "Data Retention & Deletion": {
+        "keywords": ["delete", "deletion", "erase", "erasure", "destroy", "retention", "return data", "remove", "purge"],
+        "concepts": ["right to erasure", "return or deletion", "retention limitation", "disposal of personal data"]
+    },
+    "Technical & Organizational Security Measures": {
+        "keywords": ["technical", "organizational", "security", "confidentiality", "integrity", "availability", "protect", "incident", "measures", "toms"],
+        "concepts": ["technical and organizational measures", "security of processing", "appropriate security controls"]
+    },
+    "Data Breach Notification Timeframe": {
+        "keywords": ["security incident", "breach", "notify", "notification", "72 hours", "72", "undue delay"],
+        "concepts": ["incident response timing", "regulator notification timeframe", "personal data breach communication"]
+    },
+    "DPO Designation": {
+        "keywords": ["data protection officer", "dpo", "privacy officer", "compliance officer"],
+        "concepts": ["designation of data protection officer", "mandatory dpo appointment", "position of dpo"]
+    },
+    "Data Subject Rights - Access/Rectification": {
+        "keywords": ["access request", "correction", "rectification", "data subject", "erase", "access"],
+        "concepts": ["right of access by data subject", "rectification rights", "data subject request handling"]
+    },
+    "Data Subject Rights - Erasure/Portability": {
+        "keywords": ["delete", "deletion", "erase", "erasure", "portability", "data subject", "right to erasure"],
+        "concepts": ["erasure rights", "portability rights", "data subject request handling"]
+    },
+    "Data Processing Agreement (DPA) Requirement": {
+        "keywords": ["data processing agreement", "data processing addendum", "dpa", "controller", "processor", "subprocessor", "sub-processor"],
+        "concepts": ["dpa requirements", "processor obligations", "controller processor relationship"]
+    },
+    "Transparency & Disclosures": {
+        "keywords": ["privacy notice", "transparency", "clear language", "disclose", "privacy policy", "information provided"],
+        "concepts": ["transparency information", "information disclosures", "clear and plain language"]
+    },
+    "Subprocessors Consent & Flow-down": {
+        "keywords": ["sub-processor", "subprocessor", "sub-processing", "written agreement", "flow down", "liable", "remain liable", "authorisation", "authorization"],
+        "concepts": ["subprocessor authorization", "flow down of data protection obligations", "rules for engaging other processors"]
+    },
+    "Anonymization/Pseudonymization Standards": {
+        "keywords": ["anonym", "pseudonym", "de-identify", "mask", "obfuscate"],
+        "concepts": ["anonymisation standards", "pseudonymisation techniques"]
+    },
+    "Children's Data Protections": {
+        "keywords": ["child", "children", "minor", "parental consent"],
+        "concepts": ["children data protection", "consent for minors"]
+    },
+    # Export Control Compliance Tests
+    "Item Classification (Dual-use/Military)": {
+        "keywords": ["classification", "dual-use", "dual use", "military list", "eccn", "category", "control list"],
+        "concepts": ["item classification", "strategic goods classification"]
+    },
+    "Sanctioned Destinations Prohibition": {
+        "keywords": ["sanctioned", "embargo", "prohibited", "restricted destination", "countries", "territories"],
+        "concepts": ["sanctioned destinations", "embargoed jurisdictions"]
+    },
+    "Restricted/Denied Parties Checks": {
+        "keywords": ["denied parties", "restricted parties", "screening", "list of persons", "sanctioned entity"],
+        "concepts": ["denied party screening", "restricted party checks"]
+    },
+    "End-Use Verification (Military/WMD)": {
+        "keywords": ["end-use", "end-user", "military", "wmd", "weapons of mass destruction", "certificate"],
+        "concepts": ["end-use verification", "military end-use controls"]
+    },
+    "Export License Responsibility": {
+        "keywords": ["license", "permit", "responsibility", "obtain", "authorization", "authority"],
+        "concepts": ["export licensing responsibility", "obtaining export licenses"]
+    },
+    "Intangible Technology Control": {
+        "keywords": ["intangible", "transfer of technology", "software", "electronic transfer", "transmission", "technical data"],
+        "concepts": ["intangible technology transfer", "electronic transfer controls"]
+    },
+    "Record-Keeping Requirements (e.g. 5 years)": {
+        "keywords": ["record", "keeping", "records", "retention", "5 years", "five years", "register", "invoice"],
+        "concepts": ["export control record-keeping", "retention of transaction records"]
+    },
+    "Violations Reporting": {
+        "keywords": ["violation", "violations", "reporting", "self-disclosure", "breach", "non-compliance"],
+        "concepts": ["reporting export violations", "voluntary self-disclosure"]
+    },
+    "Subcontractor Export Flow-Down": {
+        "keywords": ["subcontractor", "flow-down", "flow down", "third party", "obligations", "provision"],
+        "concepts": ["subcontractor export compliance", "export control flow-down"]
+    },
+    "Export Auditing Rights": {
+        "keywords": ["audit", "auditing", "rights", "inspection", "access", "review"],
+        "concepts": ["export auditing rights", "right to audit subcontractors"]
+    }
+}
+
+
+EXPANDED_QUERIES_MAP = {
+    # Privacy Compliance Tests
+    "Legal Basis for Processing": [
+        "lawful basis for processing GDPR Article 6",
+        "consent legitimate interest contract performance legal basis",
+        "conditions for processing personal data requirements"
+    ],
+    "Consent Management": [
+        "conditions for consent GDPR Article 7 withdrawal of consent",
+        "freely given specific informed unambiguous consent request",
+        "obtaining and managing user consent rules"
+    ],
+    "Direct Marketing Restrictions": [
+        "direct marketing opt-out opt-in consent requirements",
+        "unsolicited commercial communications marketing restrictions",
+        "objection to processing for direct marketing purposes"
+    ],
+    "Cross-Border Safeguards (e.g. Standard Contractual Clauses)": [
+        "cross-border data transfers standard contractual clauses SCCs GDPR",
+        "transfer of personal data to third countries adequacy decision safeguards",
+        "international data transfer mechanisms and agreements"
+    ],
+    "Data Retention & Deletion": [
+        "storage limitation period data retention deletion requirements",
+        "right to erasure retention schedule personal data disposal",
+        "duration of data storage and criteria for retention"
+    ],
+    "Technical & Organizational Security Measures": [
+        "technical and organizational security measures GDPR Article 32 encryption",
+        "security of processing data protection measures confidentiality integrity",
+        "appropriate level of security and technical controls"
+    ],
+    "Data Breach Notification Timeframe": [
+        "personal data breach notification to supervisory authority 72 hours",
+        "notification of data breach to data subjects timeframe",
+        "breach detection response and communication requirements"
+    ],
+    "DPO Designation": [
+        "designation of data protection officer DPO requirement tasks",
+        "when is DPO mandatory for controllers processors",
+        "position and duties of the data protection officer"
+    ],
+    "Data Subject Rights - Access/Rectification": [
+        "right of access by the data subject GDPR Article 15 rectification",
+        "information to be provided to data subjects access requests",
+        "correcting inaccurate personal data rights"
+    ],
+    "Data Subject Rights - Erasure/Portability": [
+        "right to erasure right to be forgotten GDPR Article 17",
+        "right to data portability requirements machine readable format",
+        "erasure of personal data and portability rights"
+    ],
+    "Data Processing Agreement (DPA) Requirement": [
+        "data processing agreement DPA requirements processor GDPR Article 28",
+        "contractual obligations between controller and processor clauses",
+        "mandatory processor clauses and subprocessor flow-down"
+    ],
+    "Transparency & Disclosures": [
+        "transparency information communication GDPR Article 12 13 14",
+        "privacy policy disclosures to data subjects clear language",
+        "information to be provided to data subjects transparent information"
+    ],
+    "Subprocessors Consent & Flow-down": [
+        "subprocessor authorization prior written consent controller GDPR",
+        "flow down of data protection obligations to subprocessors",
+        "rules for engaging other processors sub-processing"
+    ],
+    "Anonymization/Pseudonymization Standards": [
+        "anonymisation and pseudonymisation techniques data protection",
+        "definition of pseudonymisation GDPR security measure",
+        "de-identification of personal data standards and guidance"
+    ],
+    "Children's Data Protections": [
+        "conditions applicable to child consent GDPR Article 8 parental consent",
+        "processing of children personal data age requirements verification",
+        "information security and consent rules for minors"
+    ],
+    # Export Control Compliance Tests
+    "Item Classification (Dual-use/Military)": [
+        "export control item classification dual-use military list ECCN",
+        "classification of strategic goods technology control list",
+        "determining dual-use or military status of items"
+    ],
+    "Sanctioned Destinations Prohibition": [
+        "sanctioned destinations countries embargoes export restrictions",
+        "prohibited exports to embargoed jurisdictions and territories",
+        "trade sanctions compliance and export prohibitions"
+    ],
+    "Restricted/Denied Parties Checks": [
+        "denied parties list restricted parties screening compliance",
+        "sanctioned entity screening list of persons groups and entities",
+        "restricted party screening requirements export controls"
+    ],
+    "End-Use Verification (Military/WMD)": [
+        "end-use and end-user controls military WMD proliferation",
+        "end-use certificate requirement export licensing",
+        "proliferation of weapons of mass destruction end-user screening"
+    ],
+    "Export License Responsibility": [
+        "export authorization licensing requirements responsibility",
+        "applying for export licenses permits strategic goods",
+        "obligations for obtaining and maintaining export licenses"
+    ],
+    "Intangible Technology Control": [
+        "intangible transfer of technology ITT control software electronic transfer",
+        "technical assistance export controls controlled technology transmission",
+        "controls on digital transmission of technical data"
+    ],
+    "Record-Keeping Requirements (e.g. 5 years)": [
+        "record-keeping requirements export control documentation five years",
+        "retention of commercial documents export registers invoices",
+        "maintenance of records for export transactions compliance"
+    ],
+    "Violations Reporting": [
+        "reporting export violations voluntary self-disclosure penalties",
+        "notification of export control breaches and compliance failures",
+        "reporting requirements for export non-compliance"
+    ],
+    "Subcontractor Export Flow-Down": [
+        "flow down of export control obligations to subcontractors third parties",
+        "contractual provisions for subcontractor export control compliance",
+        "subcontractor requirements and strategic trade restrictions"
+    ],
+    "Export Auditing Rights": [
+        "export compliance auditing rights inspections and access",
+        "right to audit and review subcontractor export controls",
+        "internal audit program and export control compliance reviews"
+    ]
+}
+
+
+
+
 # ----------------------------------------------------------------------
 # Pydantic Schemas for Structured Node Outputs
 # ----------------------------------------------------------------------
 
 class JurisdictionProfileSchema(BaseModel):
-    privacy_jurisdiction: str = Field(description="The primary privacy jurisdiction identified, e.g. EU or Australia or None")
-    export_jurisdiction: str = Field(description="The primary export control jurisdiction identified, e.g. EU or Australia or None")
-    export_triggered: bool = Field(description="True if export controls apply/are triggered by the contract details (e.g. transfer of technical goods, software, or cross-border tech data)")
+    privacy_jurisdiction: str = Field(default="None", description="The primary privacy jurisdiction identified, e.g. EU or Australia or None")
+    export_jurisdiction: str = Field(default="None", description="The primary export control jurisdiction identified, e.g. EU or Australia or None")
+    privacy_triggered: bool = Field(default=False, description="True only if the contract contains personal-data processing, controller/processor, cross-border data transfer, privacy notice, data security, or similar privacy-regulated obligations tied to the supported EU/Australia regimes.")
+    export_triggered: bool = Field(default=False, description="True if export controls apply/are triggered by the contract details (e.g. transfer of technical goods, software, or cross-border tech data)")
+    rationale: str = Field(default="", description="Brief contract-grounded rationale for which supported regulatory regimes are or are not triggered.")
 
 
 class CoordinateMapItem(BaseModel):
@@ -141,6 +384,25 @@ class ExportAnalysisSchema(BaseModel):
     findings: list[ExportFindingItemSchema] = Field(description="A list of evaluations for export control compliance tests")
 
 
+class EvidenceControlAssessment(BaseModel):
+    control: str = Field(description="Compliance control being reviewed.")
+    applicable: bool = Field(description="Whether the control is triggered by the contract facts.")
+    applicability_reason: str = Field(description="Contract-grounded reason for applicability or non-applicability.")
+    contract_evidence: list[str] = Field(default_factory=list, description="Verbatim contract excerpts reviewed for this control.")
+    law_evidence: list[str] = Field(default_factory=list, description="Specific official-regulation excerpts or article references reviewed.")
+    evidence_status: str = Field(description="PRESENT, PARTIALLY_PRESENT, ABSENT, or NOT_APPLICABLE.")
+    adequacy_evaluation: str = Field(description="Assessment of whether the contract evidence addresses the regulatory obligation and whether it is materially weaker.")
+    finding: str = Field(description="Final evidence-grounded finding.")
+    remediation: str = Field(default="", description="Remediation only for PARTIALLY_PRESENT or ABSENT controls.")
+    target_clause: str = Field(default="", description="Specific contract section or paragraph number.")
+    regulatory_basis: str = Field(default="", description="Specific regulation article or section from official RAG context.")
+    confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+
+
+class EvidenceAssessmentSchema(BaseModel):
+    controls: list[EvidenceControlAssessment] = Field(description="Evidence-grounded assessment for every control.")
+
+
 class VerifiedFindingItemSchema(BaseModel):
     test_name: str
     status: str = Field(description="pass, fail, partial, or not-applicable. Corrected status if it was a false positive.")
@@ -158,6 +420,7 @@ class VerifiedFindingItemSchema(BaseModel):
     source_section: str = ""
     source_clause_id: str = ""
     source_excerpt: str = ""
+    confidence: float = Field(default=0.0, ge=0.0, le=1.0)
 
 
 class VerificationSchema(BaseModel):
@@ -205,7 +468,9 @@ class AgentState(TypedDict):
     verification_results: list
     redlines: list
     final_decision: dict
+    privacy_triggered: bool
     export_triggered: bool
+    document_type: str
 
 
 @dataclass(slots=True)
@@ -258,6 +523,170 @@ class OpenAILegalAssistant:
         # Build the sequential LangGraph
         self.graph = self._build_graph()
 
+    def _reconstruct_clauses(self, contract_text: str, source_context: str) -> list[dict]:
+        # Parse source context lines
+        context_lines = []
+        if source_context:
+            for line in source_context.splitlines():
+                if not line.strip():
+                    continue
+                parts = {}
+                for item in line.split(" | "):
+                    if "=" in item:
+                        k, v = item.split("=", 1)
+                        parts[k.strip()] = v.strip()
+                context_lines.append(parts)
+                
+        # Reconstruct blocks
+        # Note: contract_text blocks are joined by "\n\n" and prefixed with [clause_type]
+        blocks = contract_text.split("\n\n")
+        clauses = []
+        
+        for idx, block in enumerate(blocks):
+            block = block.strip()
+            if not block:
+                continue
+            clause_type = "other"
+            text = block
+            match = re.match(r"^\[([^\]]+)\]\s*(.*)$", block, re.DOTALL)
+            if match:
+                clause_type = match.group(1)
+                text = match.group(2).strip()
+                
+            # Match with context line
+            meta = {}
+            if context_lines:
+                if idx < len(context_lines):
+                    meta = context_lines[idx]
+                else:
+                    for cl in context_lines:
+                        exc = cl.get("excerpt", "")
+                        if exc.replace("...", "") in text:
+                            meta = cl
+                            break
+            
+            # Build clause representation
+            clauses.append({
+                "clause_id": meta.get("clause_id", f"clause_{idx}"),
+                "page_number": int(meta.get("page", 1)) if meta.get("page") and meta.get("page").isdigit() else 1,
+                "section_number": meta.get("section", ""),
+                "clause_type": clause_type,
+                "text": text
+            })
+            
+        if not clauses:
+            # Fallback to splitting by paragraphs if empty
+            segments = re.split(r"\n\s*\n", contract_text)
+            for idx, seg in enumerate(segments):
+                seg = seg.strip()
+                if len(seg) > 10:
+                    clauses.append({
+                        "clause_id": f"clause_{idx}",
+                        "page_number": 1,
+                        "section_number": f"Paragraph {idx+1}",
+                        "clause_type": "other",
+                        "text": seg
+                    })
+        return clauses
+
+    def _calibrate_confidence(self, status: str, has_evidence: bool, applicability_confirmed: bool, adequacy_evaluated: bool, current_confidence: float) -> float:
+        status_upper = status.upper().replace(" ", "_").replace("-", "_")
+        if status_upper == "ABSENT":
+            return min(current_confidence, 0.40)
+        elif status_upper == "PARTIALLY_PRESENT":
+            return min(current_confidence, 0.70)
+        elif status_upper == "PRESENT":
+            # 90%+ confidence only when applicability confirmed, evidence retrieved and cited, adequacy evaluated
+            if applicability_confirmed and has_evidence and adequacy_evaluated:
+                return min(current_confidence, 0.95)
+            else:
+                return min(current_confidence, 0.85)
+        return current_confidence
+
+    def _hybrid_retrieve_and_rank(self, control_name: str, all_clauses: list[dict], queries: list[str]) -> list[dict]:
+        control_map = RETRIEVAL_MAPS.get(control_name, {})
+        keywords = control_map.get("keywords", [])
+        concepts = control_map.get("concepts", [])
+        
+        # 1. Keyword search matches
+        keyword_matches = []
+        for c in all_clauses:
+            text_lower = c["text"].lower()
+            matches = 0
+            for kw in keywords:
+                if " " in kw:
+                    if kw.lower() in text_lower:
+                        matches += 1
+                else:
+                    if re.search(r'\b' + re.escape(kw) + r'\b', text_lower):
+                        matches += 1
+            if matches > 0:
+                keyword_matches.append({
+                    "clause": c,
+                    "score": matches / len(keywords),
+                    "strategy": "keyword"
+                })
+                
+        # 2. Concept search matches
+        concept_matches = []
+        for c in all_clauses:
+            text_lower = c["text"].lower()
+            matches = 0
+            for cp in concepts:
+                if cp.lower() in text_lower:
+                    matches += 1
+            if matches > 0:
+                concept_matches.append({
+                    "clause": c,
+                    "score": matches / len(concepts),
+                    "strategy": "concept"
+                })
+                
+        # 3. Semantic search matches (CrossEncoder)
+        semantic_matches = []
+        if self.cross_encoder and queries:
+            clause_scores = {}
+            for q in queries:
+                try:
+                    pairs = [(q, c["text"]) for c in all_clauses]
+                    scores = self.cross_encoder.predict(pairs)
+                    for idx, score in enumerate(scores):
+                        clause_scores[idx] = max(clause_scores.get(idx, -99.0), float(score))
+                except Exception as ex:
+                    logger.warning("CrossEncoder scoring failed: %s", ex)
+            
+            for idx, c in enumerate(all_clauses):
+                score = clause_scores.get(idx, -99.0)
+                # Sigmoid scaling
+                scaled_score = 1.0 / (1.0 + math.exp(-score)) if score != -99.0 else 0.0
+                semantic_matches.append({
+                    "clause": c,
+                    "score": scaled_score,
+                    "strategy": "semantic"
+                })
+        else:
+            # Fallback semantic score based on keywords and concepts if cross_encoder is missing
+            for idx, c in enumerate(all_clauses):
+                semantic_matches.append({
+                    "clause": c,
+                    "score": 0.1,
+                    "strategy": "semantic"
+                })
+                
+        # Union the results
+        union_dict = {}
+        for item in keyword_matches + concept_matches + semantic_matches:
+            cid = item["clause"]["clause_id"]
+            if cid not in union_dict:
+                union_dict[cid] = item
+            else:
+                if item["score"] > union_dict[cid]["score"]:
+                    union_dict[cid] = item
+                    
+        # Sort and rank descending
+        ranked_list = sorted(union_dict.values(), key=lambda x: x["score"], reverse=True)
+        return ranked_list
+
     def _format_mapping_rag_context(self, mappings: list[dict]) -> str:
         blocks: list[str] = []
         for mapping in mappings:
@@ -277,6 +706,396 @@ class OpenAILegalAssistant:
             )
         return "\n\n---\n\n".join(blocks)
 
+    def _looks_like_regulatory_coordinate(self, value: Any) -> bool:
+        text = str(value or "").strip()
+        if not text:
+            return False
+        lowered = text.lower()
+        return bool(
+            lowered.startswith(("article ", "chapter ", "gdpr art", "gdpr article"))
+            or lowered in {"chapter ii", "chapter iii", "chapter iv", "chapter v"}
+            or "australian privacy principle" in lowered
+        )
+
+    def _normalize_evidence_first_item(self, item: dict, coord: dict) -> dict:
+        for field in ["target_clause", "contract_excerpt", "source_page", "source_section", "source_clause_id"]:
+            if not item.get(field) and coord.get(field):
+                item[field] = coord[field]
+
+        if self._looks_like_regulatory_coordinate(item.get("target_clause")):
+            item["target_clause"] = ""
+        if self._looks_like_regulatory_coordinate(item.get("source_section")):
+            item["source_section"] = ""
+        if self._looks_like_regulatory_coordinate(item.get("source_clause_id")):
+            item["source_clause_id"] = ""
+
+        if not item.get("source_excerpt") and item.get("contract_excerpt"):
+            item["source_excerpt"] = item["contract_excerpt"]
+
+        normalized_status = str(item.get("status", "")).lower().replace("_", "-")
+        if normalized_status in {"not-applicable", "not applicable", "n/a", "na"}:
+            item["status"] = "not-applicable"
+            item["severity"] = "info"
+            item["target_clause"] = item.get("target_clause") or "Not applicable"
+            item["source_excerpt"] = item.get("source_excerpt") or item.get("contract_excerpt") or ""
+            return item
+
+        missing = not item.get("contract_excerpt")
+        if missing:
+            item["target_clause"] = "Missing Protection"
+            item["source_page"] = None
+            item["source_section"] = ""
+            item["source_clause_id"] = ""
+            item["source_excerpt"] = ""
+            if "missing protection" not in str(item.get("explanation", "")).lower():
+                item["explanation"] = f"Missing Protection: {item.get('explanation', '')}".strip()
+        return item
+
+    def _split_contract_segments(self, contract_text: str) -> list[str]:
+        segments = re.split(r"\n\s*\n|(?=\n?\s*(?:\d+(?:\.\d+)*|[A-Z])\.\s+[A-Z])", contract_text)
+        return [segment.strip() for segment in segments if len(segment.strip()) > 40]
+
+    def _detect_document_type(self, contract_text: str) -> str:
+        lowered = contract_text.lower()
+        dpa_signals = [
+            "data processing addendum",
+            "data processing agreement",
+            "controller",
+            "processor",
+            "sub-processor",
+            "subprocessor",
+            "documented instructions",
+            "customer personal data",
+        ]
+        export_signals = [
+            "export control",
+            "dual-use",
+            "dual use",
+            "controlled technology",
+            "technical data",
+            "export license",
+            "sanctioned",
+        ]
+        if sum(1 for signal in dpa_signals if signal in lowered) >= 3:
+            return "data_processing_agreement"
+        if any(signal in lowered for signal in export_signals):
+            return "export_control_agreement"
+        return "generic_commercial_contract"
+
+    def _find_semantic_contract_evidence(self, test_name: str, contract_text: str) -> list[str]:
+        patterns_by_test = {
+            "Technical & Organizational Security Measures": [
+                ("technical", "organizational", "security"),
+                ("security measures",),
+                ("confidentiality", "integrity", "availability"),
+                ("protect", "security incident"),
+                ("technical and organizational measures",),
+                ("appropriate measures", "security"),
+                ("toms",),
+            ],
+            "Data Breach Notification Timeframe": [
+                ("72", "security incident"),
+                ("seventy-two", "security incident"),
+                ("without undue delay", "security incident"),
+                ("notify", "security incident"),
+                ("notify", "breach"),
+            ],
+            "Subprocessors Consent & Flow-down": [
+                ("sub-processor",),
+                ("subprocessor",),
+                ("sub-processing",),
+                ("written agreement", "sub-processor"),
+                ("remain liable", "sub-processor"),
+                ("flow", "subprocessor"),
+                ("authorisation", "sub-processor"),
+                ("authorization", "sub-processor"),
+                ("prior", "sub-processor"),
+            ],
+            "Data Subject Rights - Access/Rectification": [
+                ("data subject", "request"),
+                ("access", "rectification"),
+                ("access", "retrieve"),
+                ("data subject", "inquiries"),
+                ("correction request",),
+                ("support", "data subject"),
+                ("assist", "data subject"),
+                ("rectify",),
+            ],
+            "Data Subject Rights - Erasure/Portability": [
+                ("delete", "customer personal data"),
+                ("erasure",),
+                ("portability",),
+                ("access", "retrieve", "delete"),
+                ("deletion request",),
+                ("erase",),
+                ("support", "data subject"),
+                ("assist", "data subject"),
+            ],
+            "Data Retention & Deletion": [
+                ("delete", "termination"),
+                ("deletion", "return"),
+                ("retain", "customer personal data"),
+                ("backup", "retention"),
+                ("return", "personal data"),
+                ("return or delete",),
+                ("erase",),
+                ("destroy",),
+                ("no longer required",),
+                ("delete", "service"),
+            ],
+            "Data Processing Agreement (DPA) Requirement": [
+                ("controller", "processor"),
+                ("documented instructions",),
+                ("process", "customer data", "instructions"),
+                ("confidentiality", "authorized", "personal data"),
+                ("data processing addendum",),
+                ("data processing agreement",),
+                ("sub-processor", "audit"),
+                ("technical", "organizational", "sub-processor"),
+            ],
+            "Cross-Border Safeguards (e.g. Standard Contractual Clauses)": [
+                ("standard contractual clauses",),
+                ("sccs",),
+                ("international transfer",),
+                ("data privacy framework",),
+                ("uk addendum",),
+                ("swiss", "transfer"),
+            ],
+            "Legal Basis for Processing": [
+                ("lawful", "processing"),
+                ("customer", "responsible", "applicable data protection law"),
+                ("documented instructions", "comply"),
+            ],
+            "Consent Management": [
+                ("consent",),
+            ],
+            "Direct Marketing Restrictions": [
+                ("direct marketing",),
+                ("marketing communication",),
+                ("advertising", "opt-out"),
+            ],
+            "Transparency & Disclosures": [
+                ("privacy notice",),
+                ("transparent",),
+                ("disclos", "personal data"),
+            ],
+            "DPO Designation": [
+                ("data protection officer",),
+                ("dpo",),
+                ("privacy officer",),
+            ],
+            "Anonymization/Pseudonymization Standards": [
+                ("de-identified",),
+                ("pseudonym",),
+                ("anonym",),
+            ],
+            "Children's Data Protections": [
+                ("child",),
+                ("children",),
+                ("minor",),
+            ],
+        }
+        patterns = patterns_by_test.get(test_name, [])
+        if not patterns:
+            return []
+        evidence: list[str] = []
+        for segment in self._split_contract_segments(contract_text):
+            lowered = segment.lower()
+            if any(all(term in lowered for term in pattern) for pattern in patterns):
+                evidence.append(segment[:1800])
+            if len(evidence) >= 4:
+                break
+        return evidence
+
+    def _evidence_status_to_review_status(self, applicable: bool, evidence_status: str) -> tuple[str, str]:
+        normalized = evidence_status.upper().replace(" ", "_").replace("-", "_")
+        if not applicable or normalized == "NOT_APPLICABLE":
+            return "not-applicable", "info"
+        if normalized == "PRESENT":
+            return "pass", "info"
+        if normalized == "CONTRADICTED":
+            return "partial", "medium"
+        if normalized == "PARTIALLY_PRESENT":
+            return "partial", "medium"
+        return "fail", "high"
+
+    def _confidence_cap(self, evidence_status: str, contract_evidence: list[str], confidence: float) -> float:
+        normalized = evidence_status.upper().replace(" ", "_").replace("-", "_")
+        if normalized == "CONTRADICTED":
+            return min(confidence, 0.20)
+        if not contract_evidence:
+            return min(confidence, 0.30)
+        if normalized == "PARTIALLY_PRESENT":
+            return min(confidence, 0.60)
+        return min(confidence, 0.95)
+
+    def _semantic_evidence_status_override(self, control: str, evidence: list[str], current_status: str, document_type: str = "") -> str:
+        if not evidence:
+            return current_status
+        joined = "\n".join(evidence).lower()
+        normalized = current_status.upper().replace(" ", "_").replace("-", "_")
+        if normalized not in {"ABSENT", "PARTIALLY_PRESENT"}:
+            return current_status
+        contradicted_value = "PRESENT" if normalized == "PARTIALLY_PRESENT" else "CONTRADICTED"
+        if control == "Data Processing Agreement (DPA) Requirement" and document_type == "data_processing_agreement":
+            dpa_score = sum(
+                1
+                for term in ["controller", "processor", "instructions", "sub-processor", "subprocessor", "audit", "technical", "organizational", "confidentiality"]
+                if term in joined
+            )
+            if dpa_score >= 3:
+                return contradicted_value
+        if control == "Technical & Organizational Security Measures":
+            if "technical" in joined and "organizational" in joined and "security" in joined:
+                return contradicted_value
+        if control == "Data Breach Notification Timeframe":
+            if ("72" in joined or "seventy-two" in joined) and ("security incident" in joined or "breach" in joined):
+                return contradicted_value
+            if "notify" in joined and ("security incident" in joined or "breach" in joined):
+                return "PARTIALLY_PRESENT"
+        if control == "Subprocessors Consent & Flow-down":
+            if ("sub-processor" in joined or "subprocessor" in joined) and ("written agreement" in joined or "remain liable" in joined or "same standard" in joined):
+                return contradicted_value
+        if control == "Cross-Border Safeguards (e.g. Standard Contractual Clauses)":
+            if "standard contractual clauses" in joined or "sccs" in joined or "uk addendum" in joined or "data privacy framework" in joined:
+                return contradicted_value
+        if control in {"Data Retention & Deletion", "Data Subject Rights - Erasure/Portability"}:
+            if any(term in joined for term in ["delete", "deletion", "erase", "destroy", "return"]) and any(term in joined for term in ["termination", "retrieve", "customer personal data", "no longer required", "service"]):
+                return contradicted_value
+        if control == "Data Processing Agreement (DPA) Requirement":
+            if "controller" in joined and "processor" in joined and ("documented instructions" in joined or "instructions" in joined):
+                return contradicted_value
+        if control == "Data Subject Rights - Access/Rectification":
+            if ("data subject" in joined and ("request" in joined or "inquiries" in joined or "access" in joined or "assist" in joined)) or "rectification" in joined or "correction request" in joined:
+                return contradicted_value
+        if control == "DPO Designation":
+            if "data protection officer" in joined or "dpo" in joined or "privacy officer" in joined:
+                return contradicted_value
+        return current_status
+
+    def _assessment_to_finding(self, assessment: dict, coord: dict, rag_context: list[str], document_type: str = "") -> dict:
+        contract_evidence = [str(x).strip() for x in assessment.get("contract_evidence", []) if str(x).strip()]
+        if not contract_evidence:
+            contract_evidence = [
+                str(x).strip()
+                for x in coord.get("semantic_contract_evidence", [])
+                if str(x).strip()
+            ]
+        law_evidence = [str(x).strip() for x in assessment.get("law_evidence", []) if str(x).strip()]
+        applicable = bool(assessment.get("applicable"))
+        evidence_status = assessment.get("evidence_status", "ABSENT")
+        if evidence_status in {"ABSENT", "PARTIALLY_PRESENT"} and contract_evidence:
+            override_status = self._semantic_evidence_status_override(
+                assessment.get("control", ""),
+                contract_evidence,
+                evidence_status,
+                document_type=document_type
+            )
+            if override_status == "CONTRADICTED":
+                evidence_status = "PRESENT"
+            else:
+                evidence_status = override_status
+        status, severity = self._evidence_status_to_review_status(applicable, evidence_status)
+        
+        confidence = float(assessment.get("confidence") or 0.0)
+        excerpt = contract_evidence[0] if contract_evidence else ""
+        regulatory_basis = assessment.get("regulatory_basis") or (law_evidence[0] if law_evidence else "")
+        explanation = (
+            f"{assessment.get('finding', '')}\n\n"
+            f"Evidence status: {evidence_status}. "
+            f"Applicability: {assessment.get('applicability_reason', '')} "
+            f"Adequacy: {assessment.get('adequacy_evaluation', '')}"
+        ).strip()
+        item = {
+            "test_name": assessment.get("control", ""),
+            "status": status,
+            "severity": severity,
+            "explanation": explanation,
+            "evidence": excerpt,
+            "remediation": assessment.get("remediation") if status in {"fail", "partial"} else "No remediation required.",
+            "target_clause": assessment.get("target_clause") or coord.get("target_clause", ""),
+            "contract_excerpt": excerpt,
+            "regulatory_basis": regulatory_basis,
+            "deviation_gap": (
+                "" if status in {"pass", "not-applicable"}
+                else f"Contract evidence is {evidence_status}; regulation requires {regulatory_basis or 'the cited control'}."
+            ),
+            "source_page": coord.get("source_page"),
+            "source_section": coord.get("source_section", ""),
+            "source_clause_id": coord.get("source_clause_id", ""),
+            "source_excerpt": excerpt,
+            "rag_context": rag_context,
+            "confidence": confidence,
+            
+            # vNext fields
+            "contract_sections": [assessment.get("target_clause")] if assessment.get("target_clause") else [],
+            "contract_evidence_list": contract_evidence,
+        }
+        return self._normalize_evidence_first_item(item, coord)
+
+
+    def _verified_to_compliance_finding(self, finding: dict) -> dict:
+        evidence = []
+        if finding.get("contract_excerpt"):
+            evidence.append(finding["contract_excerpt"])
+        elif finding.get("evidence"):
+            if isinstance(finding["evidence"], list):
+                for ev in finding["evidence"]:
+                    if ev and str(ev).strip():
+                        evidence.append(str(ev).strip())
+            else:
+                evidence.append(str(finding["evidence"]).strip())
+        
+        # Parse sections
+        sections = []
+        if finding.get("contract_sections"):
+            sections = [str(s).strip() for s in finding["contract_sections"] if str(s).strip()]
+        elif finding.get("target_clause"):
+            sections = [str(finding["target_clause"]).strip()]
+            
+        # Avoid "Section: Not provided" if we have evidence!
+        if evidence and (not sections or sections == ["Section: Not provided"]):
+            sections = [finding.get("source_section") or "Clause Evidence"]
+            
+        vnext_status_map = {
+            "pass": "PRESENT",
+            "partial": "PARTIALLY_PRESENT",
+            "fail": "ABSENT",
+            "not-applicable": "NOT_APPLICABLE",
+            "contradicted": "CONTRADICTED",
+            "present": "PRESENT",
+            "partially_present": "PARTIALLY_PRESENT",
+            "absent": "ABSENT",
+            "not_applicable": "NOT_APPLICABLE"
+        }
+        raw_status = finding.get("status", "not-applicable")
+        vnext_status = vnext_status_map.get(str(raw_status).lower().replace("_", "-").replace(" ", "-"), raw_status)
+        
+        return {
+            "requirement": finding.get("test_name", "Compliance control"),
+            "status": vnext_status,
+            "severity": finding.get("severity", "info"),
+            "explanation": finding.get("explanation") or finding.get("verification_notes", ""),
+            "evidence": evidence,
+            "remediation": finding.get("remediation") or "No remediation required.",
+            "target_clause": sections[0] if sections else "",
+            "contract_excerpt": evidence[0] if evidence else "",
+            "regulatory_basis": finding.get("regulatory_basis") or finding.get("citation_source", ""),
+            "deviation_gap": finding.get("deviation_gap", ""),
+            "source_page": finding.get("source_page"),
+            "source_section": finding.get("source_section", ""),
+            "source_clause_id": finding.get("source_clause_id", ""),
+            "source_excerpt": evidence[0] if evidence else "",
+            "confidence": finding.get("confidence", 0.0),
+            
+            # vNext fields
+            "control": finding.get("test_name", ""),
+            "contract_sections": sections,
+            "contract_evidence": evidence,
+            "law_reference": finding.get("regulatory_basis") or finding.get("citation_source", ""),
+        }
+
+
     def _build_graph(self):
         workflow = StateGraph(AgentState)
         llm = self.llm
@@ -285,15 +1104,19 @@ class OpenAILegalAssistant:
         def jurisdiction_node(state: AgentState):
             logger.info("[LangGraph] Transitioning to Jurisdiction Node")
             prompt = (
-                "Analyze the following contract text. Identify the applicable data privacy and export control jurisdictions "
-                "based on the contracting parties, the governing law, and the scope of work. Also determine whether export controls "
-                "are triggered (e.g. transfer of technical goods, software, or cross-border tech data).\n\n"
+                "Analyze the following contract text. Identify whether the supported official-regulation review regimes apply: "
+                "EU GDPR, Australian Privacy Act, EU Export Control, or Australian Export Control. "
+                "Set privacy_triggered true only when the contract itself shows personal-data processing, controller/processor duties, "
+                "privacy notices, data subject handling, security for personal information, or cross-border personal-data transfer tied to EU or Australia. "
+                "Set export_triggered true only for controlled goods, dual-use items, software/technology transfer, sanctions, export licensing, or controlled technical data tied to EU or Australia. "
+                "Do not infer EU/Australia applicability merely because a party is a financial services company or because customers/individuals are mentioned.\n\n"
                 f"CONTRACT TEXT:\n{state['contract_text']}"
             )
             structured_llm = llm.with_structured_output(JurisdictionProfileSchema)
             profile = structured_llm.invoke(prompt)
             return {
                 "jurisdiction_profile": profile.model_dump(),
+                "privacy_triggered": profile.privacy_triggered,
                 "export_triggered": profile.export_triggered
             }
 
@@ -315,7 +1138,9 @@ class OpenAILegalAssistant:
         # Node 3: Compliance Test Coordinate Mapping
         def coordinate_node(state: AgentState):
             logger.info("[LangGraph] Transitioning to Coordinate Mapping Node")
-            tests = PRIVACY_TESTS + (EXPORT_TESTS if state.get("export_triggered", False) else [])
+            tests = (PRIVACY_TESTS if state.get("privacy_triggered", False) else []) + (EXPORT_TESTS if state.get("export_triggered", False) else [])
+            if not tests:
+                return {"privacy_mappings": [], "export_mappings": []}
             tests_text = "\n".join(f"{idx}. {test}" for idx, test in enumerate(tests, start=1))
             prompt = (
                 "You are a forensic legal auditor. For every compliance test, identify the exact contract clause "
@@ -335,87 +1160,293 @@ class OpenAILegalAssistant:
             }
 
         # Node 5: Privacy Compliance Check
-        def privacy_node(state: AgentState):
+        async def privacy_node(state: AgentState):
             logger.info("[LangGraph] Transitioning to Privacy Node")
             profile = state["jurisdiction_profile"]
-            mappings_dict = state.get("privacy_mappings", [])
-
-            # Pass 2: Evidence-First Analysis
-            logger.info("[LangGraph] Privacy Node - Pass 2: Evidence-First Analysis")
-            pass2_prompt = (
-                f"You are a forensic legal privacy auditor. The identified privacy jurisdiction profile is: {profile}.\n"
-                "Do not summarize. For every compliance test, identify the specific contract clause that addresses the requirement. "
-                "If the clause is missing, mark it as 'Missing Protection' in the explanation, set status to fail or partial, "
-                "and cite the specific Article/Section from the provided OFFICIAL REGULATORY RAG CONTEXT that mandates its inclusion.\n"
-                "You are prohibited from issuing a finding unless you first extract contract_excerpt or explicitly mark it as Missing Protection.\n\n"
-                f"COORDINATE MAPPINGS:\n{json.dumps(mappings_dict, indent=2)}\n\n"
-                f"OFFICIAL REGULATORY RAG CONTEXT:\n{self._format_mapping_rag_context(mappings_dict)}\n\n"
-                f"CONTRACT TEXT:\n{state['contract_text']}\n\n"
-                f"SOURCE MAP:\n{state['source_context']}\n\n"
-                "Operating Rules:\n"
-                "- Use only the OFFICIAL REGULATORY RAG CONTEXT sourced from the provided PDFs.\n"
-                "- Populate target_clause, contract_excerpt, regulatory_basis, deviation_gap, source_page, source_section, source_clause_id, and source_excerpt.\n"
-                "- regulatory_basis must be a specific article/section visible in the RAG context.\n"
-                "- deviation_gap must follow: Contract says [X], but Regulation [Y] requires [Z]."
-            )
-            structured_llm_pass2 = llm.with_structured_output(PrivacyAnalysisSchema)
-            response = structured_llm_pass2.invoke(pass2_prompt)
-            rag_by_test = {m.get("test_name"): m.get("rag_context", []) for m in mappings_dict}
-            coord_by_test = {m.get("test_name"): m for m in mappings_dict}
+            if not state.get("privacy_triggered", False):
+                return {"privacy_findings": []}
+                
+            all_clauses = self._reconstruct_clauses(state["contract_text"], state["source_context"])
+            rag_context_by_test = {m.get("test_name"): m.get("rag_context", []) for m in state.get("privacy_mappings", [])}
+            coord_by_test = {m.get("test_name"): m for m in state.get("privacy_mappings", [])}
+            
             findings = []
-            for finding in response.findings:
-                item = finding.model_dump()
-                coord = coord_by_test.get(item.get("test_name"), {})
-                item["rag_context"] = rag_by_test.get(item.get("test_name"), [])
-                for field in ["target_clause", "contract_excerpt", "source_page", "source_section", "source_clause_id"]:
-                    if not item.get(field) and coord.get(field):
-                        item[field] = coord[field]
-                if not item.get("source_excerpt") and item.get("contract_excerpt"):
-                    item["source_excerpt"] = item["contract_excerpt"]
-                findings.append(item)
+            structured_llm_single = llm.with_structured_output(EvidenceControlAssessment)
+            
+            for control_name in PRIVACY_TESTS:
+                control_queries = EXPANDED_QUERIES_MAP.get(control_name, [control_name])
+                ranked = self._hybrid_retrieve_and_rank(control_name, all_clauses, control_queries)
+                
+                top_5_clauses = ranked[:5]
+                top_clause = top_5_clauses[0]["clause"] if top_5_clauses else None
+                
+                mapping = {
+                    "test_name": control_name,
+                    "target_clause": top_clause.get("section_number") if top_clause else "",
+                    "contract_excerpt": top_clause.get("text") if top_clause else "",
+                    "semantic_contract_evidence": [c["clause"]["text"] for c in top_5_clauses],
+                    "retrieved_clauses": [
+                        {
+                            "section": c["clause"]["section_number"] or f"p. {c['clause']['page_number']}",
+                            "score": round(c["score"], 2),
+                            "excerpt": c["clause"]["text"]
+                        }
+                        for c in top_5_clauses
+                    ],
+                    "rag_context": rag_context_by_test.get(control_name, [])
+                }
+                
+                formatted_rag = self._format_mapping_rag_context([mapping])
+                
+                logger.info(f"[LangGraph] Privacy Node - Evaluating control: {control_name}")
+                prompt = (
+                    f"You are a forensic legal privacy auditor. The identified privacy jurisdiction profile is: {profile}.\n\n"
+                    f"Review the control '{control_name}' following these strict stages:\n"
+                    "Stage 1 — Applicability Analysis: Determine whether this regulatory control is applicable. If not applicable, return evidence_status as NOT_APPLICABLE and stop. Never evaluate adequacy for non-applicable controls.\n"
+                    "Stage 5 — Legal Adequacy Evaluation: Evaluate if the contract materially satisfies the legal obligation (e.g., equivalent wording is PRESENT). Do not require identical wording to the regulation.\n"
+                    "Stage 6 — Evidence Status: The control must be classified as: PRESENT, PARTIALLY_PRESENT, ABSENT, or NOT_APPLICABLE.\n"
+                    "Stage 7 — Mandatory Citation Requirement: You must cite contract evidence. Prohibit the value 'Section: Not provided' if contract evidence was retrieved.\n"
+                    "Stage 8 — Confidence Calibration: Keep confidence values calibrated (max 40% for ABSENT, max 70% for PARTIALLY_PRESENT, max 85% for PRESENT, and 90%+ only when applicability is confirmed, evidence retrieved/cited, and adequacy evaluated).\n\n"
+                    f"COORDINATE AND CONTRACT EVIDENCE CANDIDATES:\n{json.dumps(mapping, indent=2)}\n\n"
+                    f"OFFICIAL REGULATORY RAG CONTEXT:\n{formatted_rag}\n\n"
+                    f"CONTRACT TEXT:\n{state['contract_text']}\n\n"
+                    "Return the assessment for this control. law_evidence must cite the official PDF RAG context. contract_evidence must be verbatim contract excerpts where present."
+                )
+                
+                try:
+                    assessment = await structured_llm_single.ainvoke(prompt)
+                    item = assessment.model_dump()
+                except Exception as ex:
+                    logger.error(f"Failed to evaluate {control_name} using LLM: {ex}")
+                    item = {
+                        "control": control_name,
+                        "applicable": True,
+                        "applicability_reason": "Fallback due to LLM error",
+                        "contract_evidence": [mapping["contract_excerpt"]] if mapping["contract_excerpt"] else [],
+                        "law_evidence": [],
+                        "evidence_status": "ABSENT",
+                        "adequacy_evaluation": "LLM error during evaluation",
+                        "finding": f"{control_name} is ABSENT (fallback)",
+                        "remediation": "Review the control requirements.",
+                        "target_clause": mapping["target_clause"],
+                        "regulatory_basis": "",
+                        "confidence": 0.3
+                    }
+                
+                evidence_status = item.get("evidence_status", "ABSENT")
+                
+                # Stage 4: Contradiction Detection before emitting ABSENT
+                if evidence_status == "ABSENT":
+                    control_map_info = RETRIEVAL_MAPS.get(control_name, {})
+                    keywords = control_map_info.get("keywords", [])
+                    contradiction_clauses = []
+                    for c in all_clauses:
+                        text_lower = c["text"].lower()
+                        for kw in keywords:
+                            if " " in kw:
+                                if kw.lower() in text_lower:
+                                    contradiction_clauses.append(c)
+                                    break
+                            else:
+                                if re.search(r'\b' + re.escape(kw) + r'\b', text_lower):
+                                    contradiction_clauses.append(c)
+                                    break
+                        if len(contradiction_clauses) >= 5:
+                            break
+                            
+                    if contradiction_clauses:
+                        logger.info(f"Contradiction found for control {control_name}. Triggering re-review.")
+                        item["evidence_status"] = "CONTRADICTED"
+                        rereview_prompt = (
+                            f"You are a senior legal auditor performing a contradiction audit for control: {control_name}.\n"
+                            f"You previously assessed this control as ABSENT, but a forensic search discovered the following relevant clauses in the contract:\n"
+                            + "\n\n".join([f"Section {c['section_number']} (p. {c['page_number']}): {c['text']}" for c in contradiction_clauses])
+                            + "\n\nUnder our vNext architecture, ABSENT is strictly prohibited when relevant evidence is found. You must reassess the control and classify it as either PRESENT (materially satisfied) or PARTIALLY_PRESENT (partially addressed).\n"
+                            "Evaluate the adequacy of this evidence and generate the updated finding details in JSON format."
+                        )
+                        try:
+                            reassessed = await structured_llm_single.ainvoke(rereview_prompt)
+                            reassessed_item = reassessed.model_dump()
+                            if reassessed_item.get("evidence_status") == "ABSENT":
+                                reassessed_item["evidence_status"] = "PARTIALLY_PRESENT"
+                            item.update(reassessed_item)
+                        except Exception as ex:
+                            logger.error(f"Re-review failed for {control_name}: {ex}")
+                            item["evidence_status"] = "PARTIALLY_PRESENT"
+                            item["contract_evidence"] = [contradiction_clauses[0]["text"]]
+                            item["target_clause"] = contradiction_clauses[0]["section_number"] or f"p. {contradiction_clauses[0]['page_number']}"
+                            item["adequacy_evaluation"] = "Evidence found in contradiction search: " + contradiction_clauses[0]["text"]
+                            
+                # Stage 8: Confidence Calibration
+                has_ev = bool(item.get("contract_evidence"))
+                app_conf = bool(item.get("applicable"))
+                ade_eval = bool(item.get("adequacy_evaluation"))
+                item["confidence"] = self._calibrate_confidence(
+                    item.get("evidence_status", "ABSENT"),
+                    has_ev,
+                    app_conf,
+                    ade_eval,
+                    float(item.get("confidence") or 0.0)
+                )
+                
+                # Prohibit "Section: Not provided" if evidence is cited
+                if has_ev and (not item.get("target_clause") or item.get("target_clause") == "Section: Not provided"):
+                    found_sec = None
+                    for c in all_clauses:
+                        if any(ev in c["text"] for ev in item.get("contract_evidence", [])):
+                            found_sec = c["section_number"] or f"p. {c['page_number']}"
+                            break
+                    item["target_clause"] = found_sec or "Clause Evidence"
+                    
+                coord = coord_by_test.get(control_name, {})
+                findings.append(self._assessment_to_finding(item, coord, rag_context_by_test.get(control_name, []), document_type="data_processing_agreement"))
+                
             return {
                 "privacy_findings": findings
             }
 
         # Node 6: Export Control Compliance Check (Conditional)
-        def export_node(state: AgentState):
+        async def export_node(state: AgentState):
             logger.info("[LangGraph] Transitioning to Export Node")
             profile = state["jurisdiction_profile"]
-            mappings_dict = state.get("export_mappings", [])
-
-            # Pass 2: Evidence-First Analysis
-            logger.info("[LangGraph] Export Node - Pass 2: Evidence-First Analysis")
-            pass2_prompt = (
-                f"You are a forensic legal export-control auditor. The identified export jurisdiction profile is: {profile}.\n"
-                "Do not summarize. For every compliance test, identify the specific contract clause that addresses the requirement. "
-                "If the clause is missing, mark it as 'Missing Protection' in the explanation, set status to fail or partial, "
-                "and cite the specific Article/Section from the provided OFFICIAL REGULATORY RAG CONTEXT that mandates its inclusion.\n"
-                "You are prohibited from issuing a finding unless you first extract contract_excerpt or explicitly mark it as Missing Protection.\n\n"
-                f"COORDINATE MAPPINGS:\n{json.dumps(mappings_dict, indent=2)}\n\n"
-                f"OFFICIAL REGULATORY RAG CONTEXT:\n{self._format_mapping_rag_context(mappings_dict)}\n\n"
-                f"CONTRACT TEXT:\n{state['contract_text']}\n\n"
-                f"SOURCE MAP:\n{state['source_context']}\n\n"
-                "Operating Rules:\n"
-                "- Use only the OFFICIAL REGULATORY RAG CONTEXT sourced from the provided PDFs.\n"
-                "- Populate target_clause, contract_excerpt, regulatory_basis, deviation_gap, source_page, source_section, source_clause_id, and source_excerpt.\n"
-                "- regulatory_basis must be a specific article/section visible in the RAG context.\n"
-                "- deviation_gap must follow: Contract says [X], but Regulation [Y] requires [Z]."
-            )
-            structured_llm_pass2 = llm.with_structured_output(ExportAnalysisSchema)
-            response = structured_llm_pass2.invoke(pass2_prompt)
-            rag_by_test = {m.get("test_name"): m.get("rag_context", []) for m in mappings_dict}
-            coord_by_test = {m.get("test_name"): m for m in mappings_dict}
+            if not state.get("export_triggered", False):
+                return {"export_findings": []}
+                
+            all_clauses = self._reconstruct_clauses(state["contract_text"], state["source_context"])
+            rag_context_by_test = {m.get("test_name"): m.get("rag_context", []) for m in state.get("export_mappings", [])}
+            coord_by_test = {m.get("test_name"): m for m in state.get("export_mappings", [])}
+            
             findings = []
-            for finding in response.findings:
-                item = finding.model_dump()
-                coord = coord_by_test.get(item.get("test_name"), {})
-                item["rag_context"] = rag_by_test.get(item.get("test_name"), [])
-                for field in ["target_clause", "contract_excerpt", "source_page", "source_section", "source_clause_id"]:
-                    if not item.get(field) and coord.get(field):
-                        item[field] = coord[field]
-                if not item.get("source_excerpt") and item.get("contract_excerpt"):
-                    item["source_excerpt"] = item["contract_excerpt"]
-                findings.append(item)
+            structured_llm_single = llm.with_structured_output(EvidenceControlAssessment)
+            
+            for control_name in EXPORT_TESTS:
+                control_queries = EXPANDED_QUERIES_MAP.get(control_name, [control_name])
+                ranked = self._hybrid_retrieve_and_rank(control_name, all_clauses, control_queries)
+                
+                top_5_clauses = ranked[:5]
+                top_clause = top_5_clauses[0]["clause"] if top_5_clauses else None
+                
+                mapping = {
+                    "test_name": control_name,
+                    "target_clause": top_clause.get("section_number") if top_clause else "",
+                    "contract_excerpt": top_clause.get("text") if top_clause else "",
+                    "semantic_contract_evidence": [c["clause"]["text"] for c in top_5_clauses],
+                    "retrieved_clauses": [
+                        {
+                            "section": c["clause"]["section_number"] or f"p. {c['clause']['page_number']}",
+                            "score": round(c["score"], 2),
+                            "excerpt": c["clause"]["text"]
+                        }
+                        for c in top_5_clauses
+                    ],
+                    "rag_context": rag_context_by_test.get(control_name, [])
+                }
+                
+                formatted_rag = self._format_mapping_rag_context([mapping])
+                
+                logger.info(f"[LangGraph] Export Node - Evaluating control: {control_name}")
+                prompt = (
+                    f"You are a forensic legal export-control auditor. The identified export jurisdiction profile is: {profile}.\n\n"
+                    f"Review the control '{control_name}' following these strict stages:\n"
+                    "Stage 1 — Applicability Analysis: Determine whether this regulatory control is applicable. If not applicable, return evidence_status as NOT_APPLICABLE and stop. Never evaluate adequacy for non-applicable controls.\n"
+                    "Stage 5 — Legal Adequacy Evaluation: Evaluate if the contract materially satisfies the legal obligation (e.g., equivalent wording is PRESENT). Do not require identical wording to the regulation.\n"
+                    "Stage 6 — Evidence Status: The control must be classified as: PRESENT, PARTIALLY_PRESENT, ABSENT, or NOT_APPLICABLE.\n"
+                    "Stage 7 — Mandatory Citation Requirement: You must cite contract evidence. Prohibit the value 'Section: Not provided' if contract evidence was retrieved.\n"
+                    "Stage 8 — Confidence Calibration: Keep confidence values calibrated (max 40% for ABSENT, max 70% for PARTIALLY_PRESENT, max 85% for PRESENT, and 90%+ only when applicability is confirmed, evidence retrieved/cited, and adequacy evaluated).\n\n"
+                    f"COORDINATE AND CONTRACT EVIDENCE CANDIDATES:\n{json.dumps(mapping, indent=2)}\n\n"
+                    f"OFFICIAL REGULATORY RAG CONTEXT:\n{formatted_rag}\n\n"
+                    f"CONTRACT TEXT:\n{state['contract_text']}\n\n"
+                    "Return the assessment for this control. law_evidence must cite the official PDF RAG context. contract_evidence must be verbatim contract excerpts where present."
+                )
+                
+                try:
+                    assessment = await structured_llm_single.ainvoke(prompt)
+                    item = assessment.model_dump()
+                except Exception as ex:
+                    logger.error(f"Failed to evaluate export control {control_name} using LLM: {ex}")
+                    item = {
+                        "control": control_name,
+                        "applicable": True,
+                        "applicability_reason": "Fallback due to LLM error",
+                        "contract_evidence": [mapping["contract_excerpt"]] if mapping["contract_excerpt"] else [],
+                        "law_evidence": [],
+                        "evidence_status": "ABSENT",
+                        "adequacy_evaluation": "LLM error during evaluation",
+                        "finding": f"{control_name} is ABSENT (fallback)",
+                        "remediation": "Review the control requirements.",
+                        "target_clause": mapping["target_clause"],
+                        "regulatory_basis": "",
+                        "confidence": 0.3
+                    }
+                
+                evidence_status = item.get("evidence_status", "ABSENT")
+                
+                # Stage 4: Contradiction Detection before emitting ABSENT
+                if evidence_status == "ABSENT":
+                    control_map_info = RETRIEVAL_MAPS.get(control_name, {})
+                    keywords = control_map_info.get("keywords", [])
+                    contradiction_clauses = []
+                    for c in all_clauses:
+                        text_lower = c["text"].lower()
+                        for kw in keywords:
+                            if " " in kw:
+                                if kw.lower() in text_lower:
+                                    contradiction_clauses.append(c)
+                                    break
+                            else:
+                                if re.search(r'\b' + re.escape(kw) + r'\b', text_lower):
+                                    contradiction_clauses.append(c)
+                                    break
+                        if len(contradiction_clauses) >= 5:
+                            break
+                            
+                    if contradiction_clauses:
+                        logger.info(f"Contradiction found for export control {control_name}. Triggering re-review.")
+                        item["evidence_status"] = "CONTRADICTED"
+                        rereview_prompt = (
+                            f"You are a senior legal auditor performing a contradiction audit for control: {control_name}.\n"
+                            f"You previously assessed this control as ABSENT, but a forensic search discovered the following relevant clauses in the contract:\n"
+                            + "\n\n".join([f"Section {c['section_number']} (p. {c['page_number']}): {c['text']}" for c in contradiction_clauses])
+                            + "\n\nUnder our vNext architecture, ABSENT is strictly prohibited when relevant evidence is found. You must reassess the control and classify it as either PRESENT (materially satisfied) or PARTIALLY_PRESENT (partially addressed).\n"
+                            "Evaluate the adequacy of this evidence and generate the updated finding details in JSON format."
+                        )
+                        try:
+                            reassessed = await structured_llm_single.ainvoke(rereview_prompt)
+                            reassessed_item = reassessed.model_dump()
+                            if reassessed_item.get("evidence_status") == "ABSENT":
+                                reassessed_item["evidence_status"] = "PARTIALLY_PRESENT"
+                            item.update(reassessed_item)
+                        except Exception as ex:
+                            logger.error(f"Re-review failed for export {control_name}: {ex}")
+                            item["evidence_status"] = "PARTIALLY_PRESENT"
+                            item["contract_evidence"] = [contradiction_clauses[0]["text"]]
+                            item["target_clause"] = contradiction_clauses[0]["section_number"] or f"p. {contradiction_clauses[0]['page_number']}"
+                            item["adequacy_evaluation"] = "Evidence found in contradiction search: " + contradiction_clauses[0]["text"]
+                            
+                # Stage 8: Confidence Calibration
+                has_ev = bool(item.get("contract_evidence"))
+                app_conf = bool(item.get("applicable"))
+                ade_eval = bool(item.get("adequacy_evaluation"))
+                item["confidence"] = self._calibrate_confidence(
+                    item.get("evidence_status", "ABSENT"),
+                    has_ev,
+                    app_conf,
+                    ade_eval,
+                    float(item.get("confidence") or 0.0)
+                )
+                
+                # Prohibit "Section: Not provided" if evidence is cited
+                if has_ev and (not item.get("target_clause") or item.get("target_clause") == "Section: Not provided"):
+                    found_sec = None
+                    for c in all_clauses:
+                        if any(ev in c["text"] for ev in item.get("contract_evidence", [])):
+                            found_sec = c["section_number"] or f"p. {c['page_number']}"
+                            break
+                    item["target_clause"] = found_sec or "Clause Evidence"
+                    
+                coord = coord_by_test.get(control_name, {})
+                findings.append(self._assessment_to_finding(item, coord, rag_context_by_test.get(control_name, []), document_type="export_control_agreement"))
+                
             return {
                 "export_findings": findings
             }
@@ -439,144 +1470,13 @@ class OpenAILegalAssistant:
                 logger.warning("Failed to connect to Elasticsearch for RAG: %s", e)
                 vector_store = None
 
-            # Mapping of 3 distinct semantic queries for each compliance test
-            expanded_queries_mapping = {
-                # Privacy Compliance Tests
-                "Legal Basis for Processing": [
-                    "lawful basis for processing GDPR Article 6",
-                    "consent legitimate interest contract performance legal basis",
-                    "conditions for processing personal data requirements"
-                ],
-                "Consent Management": [
-                    "conditions for consent GDPR Article 7 withdrawal of consent",
-                    "freely given specific informed unambiguous consent request",
-                    "obtaining and managing user consent rules"
-                ],
-                "Direct Marketing Restrictions": [
-                    "direct marketing opt-out opt-in consent requirements",
-                    "unsolicited commercial communications marketing restrictions",
-                    "objection to processing for direct marketing purposes"
-                ],
-                "Cross-Border Safeguards (e.g. Standard Contractual Clauses)": [
-                    "cross-border data transfers standard contractual clauses SCCs GDPR",
-                    "transfer of personal data to third countries adequacy decision safeguards",
-                    "international data transfer mechanisms and agreements"
-                ],
-                "Data Retention & Deletion": [
-                    "storage limitation period data retention deletion requirements",
-                    "right to erasure retention schedule personal data disposal",
-                    "duration of data storage and criteria for retention"
-                ],
-                "Technical & Organizational Security Measures": [
-                    "technical and organizational security measures GDPR Article 32 encryption",
-                    "security of processing data protection measures confidentiality integrity",
-                    "appropriate level of security and technical controls"
-                ],
-                "Data Breach Notification Timeframe": [
-                    "personal data breach notification to supervisory authority 72 hours",
-                    "notification of data breach to data subjects timeframe",
-                    "breach detection response and communication requirements"
-                ],
-                "DPO Designation": [
-                    "designation of data protection officer DPO requirement tasks",
-                    "when is DPO mandatory for controllers processors",
-                    "position and duties of the data protection officer"
-                ],
-                "Data Subject Rights - Access/Rectification": [
-                    "right of access by the data subject GDPR Article 15 rectification",
-                    "information to be provided to data subjects access requests",
-                    "correcting inaccurate personal data rights"
-                ],
-                "Data Subject Rights - Erasure/Portability": [
-                    "right to erasure right to be forgotten GDPR Article 17",
-                    "right to data portability requirements machine readable format",
-                    "erasure of personal data and portability rights"
-                ],
-                "Data Processing Agreement (DPA) Requirement": [
-                    "data processing agreement DPA requirements processor GDPR Article 28",
-                    "contractual obligations between controller and processor clauses",
-                    "mandatory processor clauses and subprocessor flow-down"
-                ],
-                "Transparency & Disclosures": [
-                    "transparency information communication GDPR Article 12 13 14",
-                    "privacy policy disclosures to data subjects clear language",
-                    "information to be provided to data subjects transparent information"
-                ],
-                "Subprocessors Consent & Flow-down": [
-                    "subprocessor authorization prior written consent controller GDPR",
-                    "flow down of data protection obligations to subprocessors",
-                    "rules for engaging other processors sub-processing"
-                ],
-                "Anonymization/Pseudonymization Standards": [
-                    "anonymisation and pseudonymisation techniques data protection",
-                    "definition of pseudonymisation GDPR security measure",
-                    "de-identification of personal data standards and guidance"
-                ],
-                "Children's Data Protections": [
-                    "conditions applicable to child consent GDPR Article 8 parental consent",
-                    "processing of children personal data age requirements verification",
-                    "information security and consent rules for minors"
-                ],
-                # Export Control Compliance Tests
-                "Item Classification (Dual-use/Military)": [
-                    "export control item classification dual-use military list ECCN",
-                    "classification of strategic goods technology control list",
-                    "determining dual-use or military status of items"
-                ],
-                "Sanctioned Destinations Prohibition": [
-                    "sanctioned destinations countries embargoes export restrictions",
-                    "prohibited exports to embargoed jurisdictions and territories",
-                    "trade sanctions compliance and export prohibitions"
-                ],
-                "Restricted/Denied Parties Checks": [
-                    "denied parties list restricted parties screening compliance",
-                    "sanctioned entity screening list of persons groups and entities",
-                    "restricted party screening requirements export controls"
-                ],
-                "End-Use Verification (Military/WMD)": [
-                    "end-use and end-user controls military WMD proliferation",
-                    "end-use certificate requirement export licensing",
-                    "proliferation of weapons of mass destruction end-user screening"
-                ],
-                "Export License Responsibility": [
-                    "export authorization licensing requirements responsibility",
-                    "applying for export licenses permits strategic goods",
-                    "obligations for obtaining and maintaining export licenses"
-                ],
-                "Intangible Technology Control": [
-                    "intangible transfer of technology ITT control software electronic transfer",
-                    "technical assistance export controls controlled technology transmission",
-                    "controls on digital transmission of technical data"
-                ],
-                "Record-Keeping Requirements (e.g. 5 years)": [
-                    "record-keeping requirements export control documentation five years",
-                    "retention of commercial documents export registers invoices",
-                    "maintenance of records for export transactions compliance"
-                ],
-                "Violations Reporting": [
-                    "reporting export violations voluntary self-disclosure penalties",
-                    "notification of export control breaches and compliance failures",
-                    "reporting requirements for export non-compliance"
-                ],
-                "Subcontractor Export Flow-Down": [
-                    "flow down of export control obligations to subcontractors third parties",
-                    "contractual provisions for subcontractor export control compliance",
-                    "subcontractor requirements and strategic trade restrictions"
-                ],
-                "Export Auditing Rights": [
-                    "export compliance auditing rights inspections and access",
-                    "right to audit and review subcontractor export controls",
-                    "internal audit program and export control compliance reviews"
-                ]
-            }
-
             def process_mappings(mappings):
                 updated = []
                 for f in mappings:
                     rag_context = []
                     if vector_store:
                         # Get expanded queries for this test
-                        queries = expanded_queries_mapping.get(f["test_name"])
+                        queries = EXPANDED_QUERIES_MAP.get(f["test_name"])
                         if not queries:
                             queries = [
                                 f"{f['test_name']} compliance regulations",
@@ -665,28 +1565,12 @@ class OpenAILegalAssistant:
             verified = []
             
             for f in findings:
-                rag_str = "\n\n".join(f.get("rag_context", []))
-                
-                prompt = (
-                    "You are the authoritative verification agent. Validate the Deviation Gap identified in the previous step "
-                    "using only the provided official regulatory RAG context from the embedded PDFs. "
-                    "If the cited regulatory basis is not present in the RAG context, correct the finding to not-applicable or partial. "
-                    "Your Verification Citation must identify the source document, article/section, and hierarchy from the RAG context. "
-                    "Do not cite websites or unstated legal knowledge.\n\n"
-                    f"FINDING:\n- Test: {f['test_name']}\n- Status: {f['status']}\n- Explanation: {f['explanation']}\n- Evidence: {f['evidence']}\n"
-                    f"- Target Clause: {f.get('target_clause', '')}\n- Contract Excerpt: {f.get('contract_excerpt', '')}\n"
-                    f"- Regulatory Basis: {f.get('regulatory_basis', '')}\n- Deviation Gap: {f.get('deviation_gap', '')}\n\n"
-                    f"OFFICIAL REGULATORY RAG CONTEXT:\n{rag_str or 'None'}"
+                v_dict = f.copy()
+                v_dict["verification_notes"] = (
+                    "Deterministic verification preserved the evidence-derived status. "
+                    "Actionable findings require applicability plus ABSENT or PARTIALLY_PRESENT contract evidence."
                 )
-                
-                structured_llm = llm.with_structured_output(VerifiedFindingItemSchema)
-                verified_item = structured_llm.invoke(prompt)
-                
-                v_dict = verified_item.model_dump()
-                # Ensure the high-precision legal analysis fields carry over from the finding if not updated
-                for field in ["target_clause", "contract_excerpt", "regulatory_basis", "deviation_gap", "source_page", "source_section", "source_clause_id", "source_excerpt"]:
-                    if not v_dict.get(field) and f.get(field):
-                        v_dict[field] = f[field]
+                v_dict["citation_source"] = f.get("regulatory_basis", "")
                 verified.append(v_dict)
 
             return {
@@ -696,50 +1580,52 @@ class OpenAILegalAssistant:
         # Node 6: Qualitative Decision and Redline proposal
         def decision_node(state: AgentState):
             logger.info("[LangGraph] Transitioning to Decision Node")
-            prompt = (
-                "You are the Lead Legal Compliance Decision Agent. Your role is to formulate a final qualitative "
-                "decision (PASS/FAIL) and propose redlines for all failed compliance findings.\n"
-                "Ensure all suggested redlines specify clearly the replacement language needed.\n\n"
-                "Operating Rules & Guardrails:\n"
-                "- State only objective, verifiable facts based on the contract text and verification results.\n"
-                "- Explicitly include a legal disclaimer exactly: 'Disclaimer: This review is for informational purposes only "
-                "and does not constitute formal legal advice. Please consult with qualified legal counsel.'\n"
-                "- Cite the exact source_page, source_section, source_clause_id, and source_excerpt for each item from the SOURCE MAP.\n"
-                "- For every generated item in clause_analyses, risk_assessments, compliance_findings, negotiation_strategies, and missing_protections, "
-                "ensure you populate the following fields with their exact matched coordinates:\n"
-                "  * target_clause\n"
-                "  * contract_excerpt\n"
-                "  * regulatory_basis\n"
-                "  * deviation_gap\n"
-                "- To guarantee visual display on the frontend, also append a formatted 'Precision Analysis Details' section at the end of:\n"
-                "  * clause_analyses item's 'summary' field\n"
-                "  * risk_assessments item's 'rationale' field\n"
-                "  * compliance_findings item's 'explanation' field\n"
-                "  * negotiation_strategies item's 'rationale' field\n"
-                "  * missing_protections item's 'why_missing' field\n"
-                "Format the appended section exactly like this:\n"
-                "\\n\\n**Precision Analysis Details:**\\n"
-                "- **Target Clause**: [value of target_clause]\\n"
-                "- **Contract Excerpt**: \\\"[value of contract_excerpt]\\\"\\n"
-                "- **Regulatory Basis**: [value of regulatory_basis]\\n"
-                "- **Deviation Gap**: [value of deviation_gap]\n\n"
-                f"VERIFIED FINDINGS:\n{state['verification_results']}\n\n"
-                f"CONTRACT TEXT:\n{state['contract_text']}\n\n"
-                f"SOURCE MAP:\n{state['source_context']}"
+            if not state.get("verification_results"):
+                profile = state.get("jurisdiction_profile", {})
+                rationale = profile.get("rationale") or (
+                    "The contract did not contain contract-grounded triggers for the supported EU/Australia privacy or export-control regimes."
+                )
+                return {
+                    "redlines": [],
+                    "final_decision": {
+                        "summary": (
+                            "No GDPR, Australian Privacy Act, EU Export Control, or Australian Export Control findings were issued. "
+                            f"{rationale} Disclaimer: This review is for informational purposes only and does not constitute formal legal advice. "
+                            "Please consult with qualified legal counsel."
+                        ),
+                        "clause_analyses": [],
+                        "risk_assessments": [],
+                        "compliance_findings": [],
+                        "negotiation_strategies": [],
+                        "missing_protections": [],
+                    },
+                }
+            compliance_findings = [
+                self._verified_to_compliance_finding(item)
+                for item in state.get("verification_results", [])
+            ]
+            status_counts: dict[str, int] = {}
+            for finding in compliance_findings:
+                status = str(finding.get("status", "unknown")).lower()
+                status_counts[status] = status_counts.get(status, 0) + 1
+            issue_count = status_counts.get("fail", 0) + status_counts.get("partial", 0)
+            summary = (
+                f"Evidence-grounded privacy/export review completed. Reviewed {len(compliance_findings)} controls: "
+                f"{status_counts.get('pass', 0)} pass, {status_counts.get('partial', 0)} partial, "
+                f"{status_counts.get('fail', 0)} fail, and {status_counts.get('not-applicable', 0)} not applicable. "
+                f"{issue_count} actionable issue(s) require remediation. "
+                "Disclaimer: This review is for informational purposes only and does not constitute formal legal advice. "
+                "Please consult with qualified legal counsel."
             )
-            
-            structured_llm = llm.with_structured_output(DecisionNodeResponse)
-            decision_resp = structured_llm.invoke(prompt)
-            
             return {
-                "redlines": [n.model_dump() for n in decision_resp.negotiation_strategies],
+                "redlines": [],
                 "final_decision": {
-                    "summary": decision_resp.summary,
-                    "clause_analyses": [c.model_dump() for c in decision_resp.clause_analyses],
-                    "risk_assessments": [r.model_dump() for r in decision_resp.risk_assessments],
-                    "compliance_findings": [cf.model_dump() for cf in decision_resp.compliance_findings],
-                    "negotiation_strategies": [n.model_dump() for n in decision_resp.negotiation_strategies],
-                    "missing_protections": [m.model_dump() for m in decision_resp.missing_protections],
+                    "summary": summary,
+                    "clause_analyses": [],
+                    "risk_assessments": [],
+                    "compliance_findings": compliance_findings,
+                    "negotiation_strategies": [],
+                    "missing_protections": [],
                 }
             }
 
@@ -757,7 +1643,23 @@ class OpenAILegalAssistant:
         workflow.add_edge("jurisdiction_node", "contract_map_node")
         workflow.add_edge("contract_map_node", "coordinate_node")
         workflow.add_edge("coordinate_node", "rag_node")
-        workflow.add_edge("rag_node", "privacy_node")
+
+        def choose_first_analysis_node(state: AgentState):
+            if state.get("privacy_triggered", False):
+                return "privacy_node"
+            if state.get("export_triggered", False):
+                return "export_node"
+            return "verification_node"
+
+        workflow.add_conditional_edges(
+            "rag_node",
+            choose_first_analysis_node,
+            {
+                "privacy_node": "privacy_node",
+                "export_node": "export_node",
+                "verification_node": "verification_node",
+            },
+        )
 
         def check_export_trigger(state: AgentState):
             if state.get("export_triggered", False):
@@ -804,6 +1706,7 @@ class OpenAILegalAssistant:
             "verification_results": [],
             "redlines": [],
             "final_decision": {},
+            "privacy_triggered": False,
             "export_triggered": False
         }
         

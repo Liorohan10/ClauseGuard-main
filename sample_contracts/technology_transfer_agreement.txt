@@ -1,0 +1,21 @@
+TECHNOLOGY TRANSFER AND LICENSING AGREEMENT
+
+This Technology Transfer Agreement ("Agreement") is entered into as of May 15, 2026, by and between AeroSpace Tech GmbH, a German corporation ("Transferor"), and OrbitCorp Australia Pty Ltd ("Transferee").
+
+WHEREAS, Transferor has developed dual-use aerospace guidance systems, software, and associated technical designs; and
+WHEREAS, Transferor desires to transfer and license this controlled technology to Transferee for satellite telemetry integration.
+
+Section 1. Technology Transfer and License
+Transferor grants Transferee a license to use the aerospace software, technical data, designs, and source code for integration purposes.
+
+Section 2. Export Control Compliance
+2.1 Export Controls: The software, technical data, designs, and dual-use components transferred under this Agreement are subject to EU Export Control Principles and Australian Export Control regulations.
+2.2 Export License Responsibility: Transferor shall be responsible for obtaining all necessary export licenses, authorizations, and permits from the relevant government authorities prior to transferring any controlled technology or dual-use items.
+2.3 Sanctioned Destinations: Transferee shall not export, re-export, or transfer the software, technical data, or goods to any sanctioned destinations, embargoed jurisdictions, or restricted countries.
+2.4 Restricted and Denied Parties: Transferee shall perform restricted and denied parties screening against all end users and subcontractors to ensure compliance with export control laws.
+2.5 End-Use Verification: Transferee shall obtain signed end-use and end-user certificates to verify that the licensed technology is not utilized for military or weapons of mass destruction (WMD) proliferation.
+2.6 Intangible Technology Control: Any electronic transmission of controlled technical data or software code across borders must be protected and audited under intangible technology control rules.
+2.7 Record-Keeping: Both parties shall maintain records of all technology transfers, software downloads, and technical exchanges for at least five (5) years.
+2.8 Violations Reporting: Transferee shall immediately report any export control compliance violations or unauthorized access to the Transferor.
+2.9 Subcontractor Flow-Down: Transferee shall flow down all export control, classification, and license compliance obligations to any subcontractors.
+2.10 Auditing Rights: Transferor retains the right to audit and inspect Transferee's export compliance records and registers upon request.
