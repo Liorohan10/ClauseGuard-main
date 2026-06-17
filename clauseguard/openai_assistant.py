@@ -509,7 +509,7 @@ class OpenAILegalAssistant:
             model=self.model,
             api_key=api_key or settings.openai_api_key,
             base_url=base_url or settings.openai_base_url,
-            temperature=0.2,
+            temperature=0.0,
         )
         
         # Initialize CrossEncoder for RAG reranking
@@ -1859,7 +1859,7 @@ class OpenAILegalAssistant:
             model=self.model,
             messages=[{"role": "user", "content": prompt}],
             response_format={"type": "json_object"},
-            temperature=0.2,
+            temperature=0.0,
         )
         content = response.choices[0].message.content or "[]"
         
@@ -1921,7 +1921,7 @@ class OpenAILegalAssistant:
                 model=model,
                 messages=messages,
                 response_format={"type": "json_object"},
-                temperature=0.2,
+                temperature=0.0,
             )
             resp_id = getattr(response, "id", None) or (response.to_dict().get("id") if hasattr(response, "to_dict") else None)
             logger.info("OpenAI response received: id=%s", resp_id)
