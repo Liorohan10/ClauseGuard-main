@@ -68,6 +68,14 @@ EXPORT_TESTS = [
 ]
 
 
+APPLICABILITY_GATES = {
+    "Children's Data Protections": ["child", "children", "minor", "student", "school", "parental consent", "age verification", "under 13", "under 16", "guardian"],
+    "Direct Marketing Restrictions": ["marketing", "advertising", "promotional", "profiling", "targeted advertising", "commercial communications"],
+    "Automated Decision Making / Profiling": ["automated decision", "profiling", "algorithm", "algorithmic", "ai decision"],
+    "Consent Management": ["consent", "opt-in", "opt-out", "withdraw consent"],
+}
+
+
 RETRIEVAL_MAPS = {
     # Privacy Compliance Tests
     "Legal Basis for Processing": {
@@ -1195,6 +1203,34 @@ class OpenAILegalAssistant:
             structured_llm_single = llm.with_structured_output(EvidenceControlAssessment)
             
             for control_name in PRIVACY_TESTS:
+                # 1. Check Applicability Gate
+                gate_keywords = APPLICABILITY_GATES.get(control_name)
+                is_gate_passed = True
+                if gate_keywords:
+                    contract_lower = state['contract_text'].lower()
+                    is_gate_passed = any(kw in contract_lower for kw in gate_keywords)
+
+                if not is_gate_passed:
+                    logger.info(f"[LangGraph] Skipping {control_name} - Applicability gate failed.")
+                    assessment = {
+                        "control": control_name,
+                        "applicable": False,
+                        "applicability_reason": f"Control is not applicable as no indicators of {control_name} (e.g., {', '.join(gate_keywords[:3])}) were found in the contract.",
+                        "contract_evidence": [],
+                        "law_evidence": [],
+                        "evidence_status": "NOT_APPLICABLE",
+                        "adequacy_evaluation": "Not triggered.",
+                        "finding": f"Control is not applicable as no indicators of {control_name} (e.g., {', '.join(gate_keywords[:3])}) were found in the contract.",
+                        "remediation": "No remediation required.",
+                        "target_clause": "Not applicable",
+                        "regulatory_basis": "",
+                        "confidence": 1.0,
+                        "is_relevant_match": False,
+                    }
+                    coord = coord_by_test.get(control_name, {})
+                    findings.append(self._assessment_to_finding(assessment, coord, rag_context_by_test.get(control_name, []), document_type="data_processing_agreement"))
+                    continue
+
                 control_queries = EXPANDED_QUERIES_MAP.get(control_name, [control_name])
                 ranked = self._hybrid_retrieve_and_rank(control_name, all_clauses, control_queries)
                 
@@ -1223,7 +1259,7 @@ class OpenAILegalAssistant:
                 prompt = (
                     f"You are a forensic legal privacy auditor. The identified privacy jurisdiction profile is: {profile}.\n\n"
                     f"Review the control '{control_name}' following these strict stages:\n"
-                    "Stage 1 — Applicability Analysis: Determine whether this regulatory control is applicable. If not applicable, return evidence_status as NOT_APPLICABLE and stop. Never evaluate adequacy for non-applicable controls.\n"
+                    "Stage 1 — Applicability Analysis: Determine whether this regulatory control is applicable. If the contract does not involve the specific subject matter (e.g., no mention of children, marketing, or automated processing), you MUST return evidence_status as NOT_APPLICABLE. Do not use generic 'personal data' clauses to force applicability. Never evaluate adequacy for non-applicable controls.\n"
                     "Stage 5 — Legal Adequacy Evaluation: Evaluate if the contract materially satisfies the legal obligation (e.g., equivalent wording is PRESENT). Do not require identical wording to the regulation.\n"
                     "Stage 6 — Evidence Status: The control must be classified as: PRESENT, PARTIALLY_PRESENT, ABSENT, or NOT_APPLICABLE.\n"
                     "Stage 7 — Mandatory Citation Requirement: You must cite contract evidence. Prohibit the value 'Section: Not provided' if contract evidence was retrieved.\n"

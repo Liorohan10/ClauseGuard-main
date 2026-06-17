@@ -58,6 +58,18 @@ async def test_github_dpa_retention_accuracy():
     assert "delete" in excerpt.lower() or "return" in excerpt.lower(), "Excerpt must contain retention/deletion language"
     assert retention_finding.status == "PRESENT", f"Expected status PRESENT, but got {retention_finding.status}"
     
+    # Children's Data Protections assertions
+    children_finding = None
+    for f in review.compliance_findings:
+        if f.control == "Children's Data Protections":
+            children_finding = f
+            
+    assert children_finding is not None, "Children's Data Protections control not found in review findings"
+    logger.info(f"Children's Data Protections status: '{children_finding.status}', confidence: {children_finding.confidence}")
+    assert children_finding.status in ("NOT_APPLICABLE", "not-applicable"), f"Expected status NOT_APPLICABLE, but got {children_finding.status}"
+    assert children_finding.confidence == 1.0, f"Expected confidence 1.0, but got {children_finding.confidence}"
+    assert "Children's Data Protections" not in review.final_decision.conditions, "Children's Data Protections should not be in final conditions"
+    
     logger.info(">> test_github_dpa_retention_accuracy PASSED successfully!")
 
 if __name__ == "__main__":
