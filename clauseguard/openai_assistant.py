@@ -87,7 +87,7 @@ RETRIEVAL_MAPS = {
         "concepts": ["international data transfer mechanisms", "transfer of personal data to third countries", "cross-border transfer safeguards"]
     },
     "Data Retention & Deletion": {
-        "keywords": ["delete", "deletion", "erase", "erasure", "destroy", "retention", "return data", "remove", "purge"],
+        "keywords": ["retention period", "retention schedule", "return or delete", "erase upon request", "destroy complete", "delete termination", "deletion return", "purge data"],
         "concepts": ["right to erasure", "return or deletion", "retention limitation", "disposal of personal data"]
     },
     "Technical & Organizational Security Measures": {
@@ -95,8 +95,8 @@ RETRIEVAL_MAPS = {
         "concepts": ["technical and organizational measures", "security of processing", "appropriate security controls"]
     },
     "Data Breach Notification Timeframe": {
-        "keywords": ["security incident", "breach", "notify", "notification", "72 hours", "72", "undue delay"],
-        "concepts": ["incident response timing", "regulator notification timeframe", "personal data breach communication"]
+        "keywords": ["72 hours", "undue delay", "seventy-two", "breach notification", "notify breach", "notification period", "notification timeframe"],
+        "concepts": ["incident response timing", "regulator notification timeframe", "personal data breach communication timeframe"]
     },
     "DPO Designation": {
         "keywords": ["data protection officer", "dpo", "privacy officer", "compliance officer"],
@@ -397,6 +397,7 @@ class EvidenceControlAssessment(BaseModel):
     target_clause: str = Field(default="", description="Specific contract section or paragraph number.")
     regulatory_basis: str = Field(default="", description="Specific regulation article or section from official RAG context.")
     confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    is_relevant_match: bool = Field(default=True, description="True if the contract evidence is a relevant match for the control, False if it is a false positive (e.g. general storage or transfer clause for deletion control).")
 
 
 class EvidenceAssessmentSchema(BaseModel):
@@ -685,6 +686,27 @@ class OpenAILegalAssistant:
                     
         # Sort and rank descending
         ranked_list = sorted(union_dict.values(), key=lambda x: x["score"], reverse=True)
+
+        # Rerank/Boost based on heading/section keywords matching control domain
+        boosted_list = []
+        for item in ranked_list:
+            c = item["clause"]
+            score = item["score"]
+            text_prefix = c["text"][:100].lower()
+            section_lower = str(c.get("section_number", "")).lower()
+            
+            boost = 0.0
+            if "Retention" in control_name or "Deletion" in control_name:
+                if any(kw in section_lower or kw in text_prefix for kw in ["retention", "deletion", "terminate", "termination", "return", "destroy"]):
+                    boost = 0.3
+            elif "Breach" in control_name or "Notification" in control_name:
+                if any(kw in section_lower or kw in text_prefix for kw in ["breach", "incident", "notify", "notification", "security"]):
+                    boost = 0.3
+                    
+            item["score"] = score + boost
+            boosted_list.append(item)
+
+        ranked_list = sorted(boosted_list, key=lambda x: x["score"], reverse=True)
         return ranked_list[:3]
 
     def _format_mapping_rag_context(self, mappings: list[dict]) -> str:
@@ -752,8 +774,9 @@ class OpenAILegalAssistant:
         return item
 
     def _split_contract_segments(self, contract_text: str) -> list[str]:
-        segments = re.split(r"\n\s*\n|(?=\n?\s*(?:\d+(?:\.\d+)*|[A-Z])\.\s+[A-Z])", contract_text)
-        return [segment.strip() for segment in segments if len(segment.strip()) > 40]
+        # Improved regex to catch "Section 8.", "8. Retention", "Article 5" etc.
+        segments = re.split(r"\n\s*\n|(?=\n\s*(?:Section|Article|Clause)\s+\d+)|(?=\n\s*\d+\.\s+[A-Z])", contract_text)
+        return [segment.strip() for segment in segments if len(segment.strip()) > 20]
 
     def _detect_document_type(self, contract_text: str) -> str:
         lowered = contract_text.lower()
@@ -834,14 +857,12 @@ class OpenAILegalAssistant:
             "Data Retention & Deletion": [
                 ("delete", "termination"),
                 ("deletion", "return"),
-                ("retain", "customer personal data"),
-                ("backup", "retention"),
-                ("return", "personal data"),
+                ("retention period",),
+                ("retention schedule",),
                 ("return or delete",),
-                ("erase",),
-                ("destroy",),
-                ("no longer required",),
-                ("delete", "service"),
+                ("erase", "upon request"),
+                ("destroy", "completion of services"),
+                ("no longer required", "delete"),
             ],
             "Data Processing Agreement (DPA) Requirement": [
                 ("controller", "processor"),
@@ -1206,7 +1227,8 @@ class OpenAILegalAssistant:
                     "Stage 5 — Legal Adequacy Evaluation: Evaluate if the contract materially satisfies the legal obligation (e.g., equivalent wording is PRESENT). Do not require identical wording to the regulation.\n"
                     "Stage 6 — Evidence Status: The control must be classified as: PRESENT, PARTIALLY_PRESENT, ABSENT, or NOT_APPLICABLE.\n"
                     "Stage 7 — Mandatory Citation Requirement: You must cite contract evidence. Prohibit the value 'Section: Not provided' if contract evidence was retrieved.\n"
-                    "Stage 8 — Confidence Calibration: Keep confidence values calibrated (max 40% for ABSENT, max 70% for PARTIALLY_PRESENT, max 85% for PRESENT, and 90%+ only when applicability is confirmed, evidence retrieved/cited, and adequacy evaluated).\n\n"
+                    "Stage 8 — Confidence Calibration: Keep confidence values calibrated (max 40% for ABSENT, max 70% for PARTIALLY_PRESENT, max 85% for PRESENT, and 90%+ only when applicability is confirmed, evidence retrieved/cited, and adequacy evaluated).\n"
+                    "Stage 9 — Relevance Filtering: If the provided CANDIDATE EVIDENCE discusses a different topic (e.g., Data Transfer, Security Measures, or Subprocessors) and does not explicitly mention retention periods or deletion obligations, you MUST set is_relevant_match to False, ignore it, and classify evidence_status as ABSENT. Do not attempt to 'stretch' a storage clause to satisfy a deletion requirement.\n\n"
                     "Strict Node Rules:\n"
                     "1. For every test, you MUST identify the exact clause ID. If multiple clauses mention the topic, you must select the one that most specifically addresses the requirement (e.g., for notification timeframes, prioritize clauses with time units like '72 hours' or 'undue delay' over general security clauses).\n"
                     "2. You MUST explicitly look for 'Parent Article: [Name]' in the official regulatory context to cite the correct regulatory basis.\n\n"
@@ -1233,8 +1255,16 @@ class OpenAILegalAssistant:
                         "remediation": "Review the control requirements.",
                         "target_clause": mapping["target_clause"],
                         "regulatory_basis": "",
-                        "confidence": 0.3
+                        "confidence": 0.3,
+                        "is_relevant_match": True,
                     }
+
+                # Force status to ABSENT if not relevant match
+                if not item.get("is_relevant_match", True):
+                    item["evidence_status"] = "ABSENT"
+                    item["contract_evidence"] = []
+                    item["finding"] = f"{control_name} is ABSENT (no relevant contract evidence found)."
+                    item["remediation"] = f"Add a {control_name} clause to the contract."
                 
                 evidence_status = item.get("evidence_status", "ABSENT")
                 
@@ -1296,8 +1326,11 @@ class OpenAILegalAssistant:
                 if has_ev and (not item.get("target_clause") or item.get("target_clause") == "Section: Not provided"):
                     found_sec = None
                     for c in all_clauses:
-                        if any(ev in c["text"] for ev in item.get("contract_evidence", [])):
-                            found_sec = c["section_number"] or f"p. {c['page_number']}"
+                        for ev in item.get("contract_evidence", []):
+                            if ev.strip() in c["text"] or c["text"] in ev.strip():
+                                found_sec = c["section_number"] or f"p. {c['page_number']}"
+                                break
+                        if found_sec:
                             break
                     item["target_clause"] = found_sec or "Clause Evidence"
                     
@@ -1355,7 +1388,8 @@ class OpenAILegalAssistant:
                     "Stage 5 — Legal Adequacy Evaluation: Evaluate if the contract materially satisfies the legal obligation (e.g., equivalent wording is PRESENT). Do not require identical wording to the regulation.\n"
                     "Stage 6 — Evidence Status: The control must be classified as: PRESENT, PARTIALLY_PRESENT, ABSENT, or NOT_APPLICABLE.\n"
                     "Stage 7 — Mandatory Citation Requirement: You must cite contract evidence. Prohibit the value 'Section: Not provided' if contract evidence was retrieved.\n"
-                    "Stage 8 — Confidence Calibration: Keep confidence values calibrated (max 40% for ABSENT, max 70% for PARTIALLY_PRESENT, max 85% for PRESENT, and 90%+ only when applicability is confirmed, evidence retrieved/cited, and adequacy evaluated).\n\n"
+                    "Stage 8 — Confidence Calibration: Keep confidence values calibrated (max 40% for ABSENT, max 70% for PARTIALLY_PRESENT, max 85% for PRESENT, and 90%+ only when applicability is confirmed, evidence retrieved/cited, and adequacy evaluated).\n"
+                    "Stage 9 — Relevance Filtering: If the provided CANDIDATE EVIDENCE discusses a different topic (e.g., Data Transfer, Security Measures, or Subprocessors) and does not explicitly mention compliance with export laws, you MUST set is_relevant_match to False, ignore it, and classify evidence_status as ABSENT. Do not attempt to 'stretch' a security clause to satisfy an export check.\n\n"
                     f"COORDINATE AND CONTRACT EVIDENCE CANDIDATES:\n{json.dumps(mapping, indent=2)}\n\n"
                     f"OFFICIAL REGULATORY RAG CONTEXT:\n{formatted_rag}\n\n"
                     f"CONTRACT TEXT:\n{state['contract_text']}\n\n"
@@ -1379,8 +1413,16 @@ class OpenAILegalAssistant:
                         "remediation": "Review the control requirements.",
                         "target_clause": mapping["target_clause"],
                         "regulatory_basis": "",
-                        "confidence": 0.3
+                        "confidence": 0.3,
+                        "is_relevant_match": True,
                     }
+
+                # Force status to ABSENT if not relevant match
+                if not item.get("is_relevant_match", True):
+                    item["evidence_status"] = "ABSENT"
+                    item["contract_evidence"] = []
+                    item["finding"] = f"{control_name} is ABSENT (no relevant contract evidence found)."
+                    item["remediation"] = f"Add a {control_name} clause to the contract."
                 
                 evidence_status = item.get("evidence_status", "ABSENT")
                 
@@ -1442,8 +1484,11 @@ class OpenAILegalAssistant:
                 if has_ev and (not item.get("target_clause") or item.get("target_clause") == "Section: Not provided"):
                     found_sec = None
                     for c in all_clauses:
-                        if any(ev in c["text"] for ev in item.get("contract_evidence", [])):
-                            found_sec = c["section_number"] or f"p. {c['page_number']}"
+                        for ev in item.get("contract_evidence", []):
+                            if ev.strip() in c["text"] or c["text"] in ev.strip():
+                                found_sec = c["section_number"] or f"p. {c['page_number']}"
+                                break
+                        if found_sec:
                             break
                     item["target_clause"] = found_sec or "Clause Evidence"
                     
