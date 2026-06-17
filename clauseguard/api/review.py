@@ -166,8 +166,6 @@ def _build_workbook(review: ContractReviewOutput, contract_filename: str, review
     # Metadata rows
     ws["A3"] = "Contract Filename"
     ws["B3"] = contract_filename
-    ws["E3"] = "Compliance Score"
-    ws["F3"] = f"{review.contract_safety_score}/100"
     ws["A4"] = "Audit Timestamp"
     ws["B4"] = reviewed_at
     ws["E4"] = "Final Decision"
@@ -175,9 +173,8 @@ def _build_workbook(review: ContractReviewOutput, contract_filename: str, review
     ws["A5"] = "Export Control"
     ws["B5"] = "Triggered" if review.export_control_triggered else "Not Triggered"
 
-    for cell in ("A3", "A4", "A5", "E3", "E4"):
+    for cell in ("A3", "A4", "A5", "E4"):
         ws[cell].font = Font(bold=True)
-    ws["F3"].font = Font(bold=True, color="1F4E79")
     ws["F4"].font = Font(bold=True, color="C00000")
 
     # Section: Jurisdiction Profile

@@ -115,6 +115,10 @@ class ComplianceFinding(SchemaBase):
     source_clause_id: str = Field(default="", description="Internal clause identifier from the source document.")
     source_excerpt: str = Field(default="", description="Exact excerpt supporting the compliance finding.")
     confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    target_clause: str = Field(default="", description="The specific section/paragraph number from the uploaded contract.")
+    contract_excerpt: str = Field(default="", description="The exact verbatim text being flagged.")
+    regulatory_basis: str = Field(default="", description="The specific Article/Section from the official RAG context.")
+    deviation_gap: str = Field(default="", description="A direct comparison: 'Contract says [X], but Regulation [Y] requires [Z].'")
 
     # vNext Hybrid Retrieval + Evidence-Grounded Legal Adequacy Review fields
     control: str = Field(default="", description="Compliance control being reviewed.")
@@ -179,7 +183,6 @@ class FinalDecision(SchemaBase):
 # ---------------------------------------------------------------------------
 
 class ContractReviewOutput(SchemaBase):
-    contract_safety_score: int = Field(ge=0, le=100, description="Overall safety score for the contract (0–100).")
     summary: str = Field(description="Executive summary of the contract analysis (spec section 1).")
     # Spec section 2
     jurisdiction_profile: JurisdictionProfile | None = Field(

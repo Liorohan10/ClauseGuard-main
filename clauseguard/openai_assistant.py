@@ -17,6 +17,7 @@ from langchain_openai import ChatOpenAI
 from langchain_elasticsearch import ElasticsearchStore
 from elasticsearch import Elasticsearch
 from langgraph.graph import StateGraph, END
+from sentence_transformers import CrossEncoder
 from pydantic import BaseModel, Field
 
 from clauseguard.config import settings
@@ -684,7 +685,7 @@ class OpenAILegalAssistant:
                     
         # Sort and rank descending
         ranked_list = sorted(union_dict.values(), key=lambda x: x["score"], reverse=True)
-        return ranked_list
+        return ranked_list[:3]
 
     def _format_mapping_rag_context(self, mappings: list[dict]) -> str:
         blocks: list[str] = []
@@ -1206,6 +1207,9 @@ class OpenAILegalAssistant:
                     "Stage 6 — Evidence Status: The control must be classified as: PRESENT, PARTIALLY_PRESENT, ABSENT, or NOT_APPLICABLE.\n"
                     "Stage 7 — Mandatory Citation Requirement: You must cite contract evidence. Prohibit the value 'Section: Not provided' if contract evidence was retrieved.\n"
                     "Stage 8 — Confidence Calibration: Keep confidence values calibrated (max 40% for ABSENT, max 70% for PARTIALLY_PRESENT, max 85% for PRESENT, and 90%+ only when applicability is confirmed, evidence retrieved/cited, and adequacy evaluated).\n\n"
+                    "Strict Node Rules:\n"
+                    "1. For every test, you MUST identify the exact clause ID. If multiple clauses mention the topic, you must select the one that most specifically addresses the requirement (e.g., for notification timeframes, prioritize clauses with time units like '72 hours' or 'undue delay' over general security clauses).\n"
+                    "2. You MUST explicitly look for 'Parent Article: [Name]' in the official regulatory context to cite the correct regulatory basis.\n\n"
                     f"COORDINATE AND CONTRACT EVIDENCE CANDIDATES:\n{json.dumps(mapping, indent=2)}\n\n"
                     f"OFFICIAL REGULATORY RAG CONTEXT:\n{formatted_rag}\n\n"
                     f"CONTRACT TEXT:\n{state['contract_text']}\n\n"
@@ -1542,7 +1546,9 @@ class OpenAILegalAssistant:
                             art_str = f" ({art_num})" if art_num else ""
                             provision_type = doc.metadata.get("provision_type", "")
                             hierarchy = doc.metadata.get("full_hierarchy", "")
+                            parent_title = doc.metadata.get("parent_title") or doc.metadata.get("article_number") or ""
                             rag_context.append(
+                                f"Parent Article: {parent_title}\n"
                                 f"Source: {source}{art_str}\n"
                                 f"Provision Type: {provision_type}\n"
                                 f"Hierarchy: {hierarchy}\n"
@@ -1747,30 +1753,13 @@ class OpenAILegalAssistant:
             else:
                 finding.issue_id = f"{'EXP' if finding.domain == 'export_control' else 'PRIV'}-{idx:03d}"
                 
-        # Derive safety score
-        score = 100
-        for finding in compliance_findings:
-            sev = str(finding.severity).lower()
-            if finding.status not in ("pass", "not-applicable"):
-                if sev == "critical":
-                    score -= 15
-                elif sev == "high":
-                    score -= 8
-                elif sev == "medium":
-                    score -= 4
-                elif sev == "low":
-                    score -= 1
-        for clause in clause_analyses:
-            risk = str(clause.risk_level).lower()
-            if risk == "critical":
-                score -= 10
-            elif risk == "high":
-                score -= 5
-        contract_safety_score = max(0, min(100, score))
-        
         # Derive final decision
-        has_critical = any(f.severity == AnalysisSeverity.CRITICAL for f in compliance_findings if f.status not in ("pass", "not-applicable"))
-        has_high_or_medium = any(f.severity in (AnalysisSeverity.HIGH, AnalysisSeverity.MEDIUM) for f in compliance_findings if f.status not in ("pass", "not-applicable"))
+        def is_actionable(f):
+            st = str(f.status).upper().replace("_", "-")
+            return st not in ("PRESENT", "PASS", "NOT-APPLICABLE", "NOT_APPLICABLE")
+
+        has_critical = any(f.severity == AnalysisSeverity.CRITICAL for f in compliance_findings if is_actionable(f))
+        has_high_or_medium = any(f.severity in (AnalysisSeverity.HIGH, AnalysisSeverity.MEDIUM) for f in compliance_findings if is_actionable(f))
         
         if has_critical:
             outcome = DecisionOutcome.FAIL
@@ -1782,10 +1771,24 @@ class OpenAILegalAssistant:
             outcome = DecisionOutcome.PASS
             rationale = "The contract is approved with no significant data privacy or export control compliance issues."
             
+        # Conditions should only include:
+        # - ABSENT controls
+        # - PARTIALLY_PRESENT controls above a severity threshold (MEDIUM or higher)
+        conditions = []
+        for f in compliance_findings:
+            st = str(f.status).upper().replace("_", "-")
+            if st in ("PRESENT", "PASS", "NOT-APPLICABLE", "NOT_APPLICABLE"):
+                continue
+            if st in ("ABSENT", "FAIL"):
+                conditions.append(f.requirement)
+            elif st in ("PARTIALLY-PRESENT", "PARTIALLY_PRESENT", "PARTIAL", "CONTRADICTED"):
+                if f.severity in (AnalysisSeverity.CRITICAL, AnalysisSeverity.HIGH, AnalysisSeverity.MEDIUM):
+                    conditions.append(f.requirement)
+
         final_decision = FinalDecision(
             outcome=outcome,
             rationale=rationale,
-            conditions=[f.requirement for f in compliance_findings if f.status not in ("pass", "not-applicable")],
+            conditions=conditions,
             escalation_targets=["HUMAN PRIVACY COUNSEL"] if has_critical else []
         )
         
@@ -1818,13 +1821,11 @@ class OpenAILegalAssistant:
         # Build summary
         summary = (
             f"Review of {filename or 'contract'} completed. "
-            f"Safety score: {contract_safety_score}/100. "
             f"Final decision: {str(outcome.value).upper().replace('_', ' ')}. "
             f"{len(compliance_findings)} compliance findings evaluated."
         )
         
         return ContractReviewOutput(
-            contract_safety_score=contract_safety_score,
             summary=summary,
             jurisdiction_profile=jurisdiction_profile,
             compliance_findings=compliance_findings,
@@ -1836,6 +1837,55 @@ class OpenAILegalAssistant:
             source_filename=filename,
             document_type="contract"
         )
+
+    async def extract_clauses(self, contract_text: str) -> list[dict]:
+        """Extract clauses from contract text using LLM."""
+        from clauseguard.models.clause import ClauseType
+        clause_types = ", ".join(f'"{ct.value}"' for ct in ClauseType)
+        prompt = (
+            "You are a legal contract analyst. Extract all distinct legal clauses from the following contract text.\n\n"
+            "For each clause, return a JSON object with:\n"
+            f"- \"clause_type\": one of {clause_types}\n"
+            "- \"text\": the full clause text (verbatim from the contract)\n"
+            "- \"section_number\": the section number if present (e.g. \"3.1\", \"Section 5\"), or \"\"\n"
+            "- \"char_offset_start\": approximate character offset where clause begins\n"
+            "- \"char_offset_end\": approximate character offset where clause ends\n"
+            "- \"confidence\": your confidence in the classification (0.0 to 1.0)\n\n"
+            "Return a JSON array of clause objects. Only return valid JSON, no markdown fences or extra text.\n\n"
+            f"CONTRACT TEXT:\n{contract_text[:50000]}"
+        )
+        
+        response = await self.client.chat.completions.create(
+            model=self.model,
+            messages=[{"role": "user", "content": prompt}],
+            response_format={"type": "json_object"},
+            temperature=0.2,
+        )
+        content = response.choices[0].message.content or "[]"
+        
+        if content.startswith("```"):
+            if "\n" in content:
+                content = content.split("\n", 1)[1]
+            else:
+                content = content[3:]
+            if content.endswith("```"):
+                content = content[:-3]
+            content = content.strip()
+            
+        try:
+            payload = json.loads(content)
+            if isinstance(payload, dict) and "clauses" in payload:
+                return payload["clauses"]
+            if isinstance(payload, list):
+                return payload
+            elif isinstance(payload, dict):
+                for k, v in payload.items():
+                    if isinstance(v, list):
+                        return v
+            return []
+        except Exception as e:
+            logger.error("Failed to parse clauses extraction JSON: %s", e)
+            return []
 
     async def assess_risks(self, file_path: str) -> list[RiskAssessment]:
         # Re-use the graph execution for risk assessment compatibility

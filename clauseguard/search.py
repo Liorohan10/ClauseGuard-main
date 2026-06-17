@@ -70,14 +70,20 @@ async def async_web_search(query: str, max_results: int = 3) -> list[dict[str, s
     if settings.tavily_api_key:
         try:
             logger.info("Executing Tavily Search: query=%s", query)
+            allowed_domains = [
+                "gdpr-info.eu",
+                "edpb.europa.eu",
+                "legislation.gov.au"
+            ]
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.post(
                     "https://api.tavily.com/search",
                     json={
                         "api_key": settings.tavily_api_key,
                         "query": query,
+                        "include_domains": allowed_domains,
                         "max_results": max_results,
-                        "search_depth": "basic"
+                        "search_depth": "advanced"
                     }
                 )
                 if response.status_code == 200:

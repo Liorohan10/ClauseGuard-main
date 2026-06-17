@@ -21,7 +21,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { api } from '@/lib/api';
-import { RiskGauge } from '@/components/RiskGauge';
 import {
   DECISION_OUTCOME_STYLES,
   SEVERITY_COLORS,
@@ -96,6 +95,15 @@ export function ReviewPage() {
     );
   }
 
+  const isIssue = (f: ComplianceFinding) => {
+    const status = f.status.toLowerCase().replace('_', '-');
+    const severity = f.severity.toLowerCase();
+    return (
+      !['pass', 'present', 'not-applicable', 'not_applicable'].includes(status) &&
+      severity !== 'info'
+    );
+  };
+
   // Split findings by domain
   const privacyFindings = report.compliance_findings.filter(
     (f) => f.domain === 'privacy' || f.domain === 'general'
@@ -103,12 +111,12 @@ export function ReviewPage() {
   const exportFindings = report.compliance_findings.filter(
     (f) => f.domain === 'export_control'
   );
-  const escalations = report.compliance_findings.filter((f) => f.escalate);
+  const escalations = report.compliance_findings.filter((f) => f.escalate && isIssue(f));
 
   const criticalCount = report.compliance_findings.filter(
-    (f) => f.severity === 'critical'
+    (f) => f.severity === 'critical' && isIssue(f)
   ).length;
-  const highPrivacyCount = privacyFindings.filter((f) => f.severity === 'high').length;
+  const highPrivacyCount = privacyFindings.filter((f) => f.severity === 'high' && isIssue(f)).length;
 
   const decision = report.final_decision;
   const decisionStyle = decision
@@ -169,9 +177,23 @@ export function ReviewPage() {
 
       {/* ── Spec §1: Executive Result + Score ────────────────────────── */}
       <div className="grid gap-6 lg:grid-cols-[240px_1fr]">
-        <Card className="flex items-center justify-center">
-          <CardContent className="p-8">
-            <RiskGauge score={report.contract_safety_score} />
+        <Card className="flex flex-col justify-center p-6 border rounded-lg bg-card text-card-foreground">
+          <CardContent className="space-y-4 p-0">
+            <div className="status-card">
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">Final Decision</h3>
+              {decision && (
+                <>
+                  <div
+                    className={`badge inline-flex items-center gap-2 rounded-lg border px-4 py-2 font-bold text-sm mb-3
+                      ${decisionStyle.bg} ${decisionStyle.text} ${decisionStyle.border}`}
+                  >
+                    <DecisionIcon outcome={decision.outcome as DecisionOutcome} />
+                    {decision.outcome.toUpperCase()}
+                  </div>
+                  <p className="text-sm leading-relaxed text-foreground">{decision.rationale}</p>
+                </>
+              )}
+            </div>
           </CardContent>
         </Card>
 
@@ -231,7 +253,7 @@ export function ReviewPage() {
         <StatCard
           id="stat-export"
           label="Export Control Issues"
-          count={exportFindings.filter((f) => f.status !== 'pass').length}
+          count={exportFindings.filter(isIssue).length}
           icon={AlertCircle}
           colorClass="border-l-4 border-l-amber-500 bg-amber-50/50 dark:bg-amber-950/10"
           iconColor="text-amber-500"
@@ -314,14 +336,14 @@ export function ReviewPage() {
             className="rounded-full border border-border bg-card data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:border-blue-600"
           >
             Data Privacy
-            <span className="ml-1.5 text-xs opacity-75">({privacyFindings.filter(f => f.status !== 'pass').length})</span>
+            <span className="ml-1.5 text-xs opacity-75">({privacyFindings.filter(isIssue).length})</span>
           </TabsTrigger>
           <TabsTrigger
             value="export"
             className="rounded-full border border-border bg-card data-[state=active]:bg-amber-600 data-[state=active]:text-white data-[state=active]:border-amber-600"
           >
             Export Control
-            <span className="ml-1.5 text-xs opacity-75">({exportFindings.filter(f => f.status !== 'pass').length})</span>
+            <span className="ml-1.5 text-xs opacity-75">({exportFindings.filter(isIssue).length})</span>
           </TabsTrigger>
           <TabsTrigger
             value="redlines"
@@ -344,11 +366,11 @@ export function ReviewPage() {
           <p className="text-sm text-muted-foreground">
             Privacy compliance findings across all identified jurisdictions.
           </p>
-          {privacyFindings.filter(f => f.status !== 'pass' && f.status !== 'not-applicable').length === 0 ? (
+          {privacyFindings.filter(isIssue).length === 0 ? (
             <EmptyState message="No data privacy issues identified on current facts." />
           ) : (
             privacyFindings
-              .filter(f => f.status !== 'pass' && f.status !== 'not-applicable')
+              .filter(isIssue)
               .sort((a, b) => severityRank(b.severity) - severityRank(a.severity))
               .map((item, i) => (
                 <FindingCard key={i} finding={item} />
@@ -377,11 +399,11 @@ export function ReviewPage() {
                 </div>
               </CardContent>
             </Card>
-          ) : exportFindings.filter(f => f.status !== 'pass' && f.status !== 'not-applicable').length === 0 ? (
+          ) : exportFindings.filter(isIssue).length === 0 ? (
             <EmptyState message="No export control issues identified on current facts." />
           ) : (
             exportFindings
-              .filter(f => f.status !== 'pass' && f.status !== 'not-applicable')
+              .filter(isIssue)
               .sort((a, b) => severityRank(b.severity) - severityRank(a.severity))
               .map((item, i) => (
                 <FindingCard key={i} finding={item} />

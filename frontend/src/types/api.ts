@@ -129,6 +129,10 @@ export interface ComplianceFinding {
   source_clause_id?: string;
   source_excerpt?: string;
   confidence: number;
+  target_clause?: string;
+  contract_excerpt?: string;
+  regulatory_basis?: string;
+  deviation_gap?: string;
 
   // vNext fields
   control?: string;
@@ -238,7 +242,6 @@ export interface NegotiationStrategy {
 // ---------------------------------------------------------------------------
 
 export interface ContractReviewOutput {
-  contract_safety_score: number;
   summary: string;
   // Spec section 2
   jurisdiction_profile?: JurisdictionProfile | null;

@@ -37,7 +37,6 @@ async def test_assistant_with_search():
     review = await assistant.analyze_contract_text(text, filename=contract_path.name)
     
     print("\n--- PIPELINE RUN SUCCESSFUL ---")
-    print(f"Safety Score: {review.contract_safety_score}")
     print(f"Final Decision: {review.final_decision.outcome if review.final_decision else 'None'}")
     print(f"Summary: {review.summary}")
     print(f"Number of verified findings: {len(review.compliance_findings)}")

@@ -4,10 +4,10 @@ from datetime import datetime
 
 from clauseguard.models.clause import ClauseType, ExtractedClause
 from clauseguard.models.contract import ContractMetadata, ContractUploadResponse
-from clauseguard.services.claude_service import ClaudeService
 from clauseguard.services.elasticsearch_service import ElasticsearchService
 from clauseguard.services.embedding_service import EmbeddingService
 from clauseguard.services.pdf_service import PDFService
+from clauseguard.openai_assistant import OpenAILegalAssistant
 
 logger = logging.getLogger(__name__)
 
@@ -18,12 +18,12 @@ class IngestionAgent:
     def __init__(
         self,
         pdf_service: PDFService,
-        claude_service: ClaudeService,
+        openai_assistant: OpenAILegalAssistant,
         embedding_service: EmbeddingService,
         es_service: ElasticsearchService,
     ):
         self.pdf = pdf_service
-        self.claude = claude_service
+        self.openai_assistant = openai_assistant
         self.embedder = embedding_service
         self.es = es_service
 
@@ -35,8 +35,8 @@ class IngestionAgent:
         text, num_pages = self.pdf.parse(file_bytes, filename)
         logger.info("Parsed %s: %d pages, %d chars", filename, num_pages, len(text))
 
-        # 2. Extract clauses via Claude
-        raw_clauses = self.claude.extract_clauses(text)
+        # 2. Extract clauses via OpenAI assistant
+        raw_clauses = await self.openai_assistant.extract_clauses(text)
         logger.info("Claude extracted %d clauses from %s", len(raw_clauses), filename)
 
         # 3. Post-process: validate types, correct offsets

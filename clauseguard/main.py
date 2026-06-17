@@ -5,12 +5,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from clauseguard.agents.ingestion import IngestionAgent
-from clauseguard.agents.review import ReviewAgent
 from clauseguard.agents.search import SearchAgent
 from clauseguard.api.router import api_router
 from clauseguard.config import settings
 from clauseguard.openai_assistant import OpenAILegalAssistant
-from clauseguard.services.claude_service import ClaudeService
 from clauseguard.services.elasticsearch_service import ElasticsearchService
 from clauseguard.services.embedding_service import EmbeddingService
 from clauseguard.services.pdf_service import PDFService
@@ -32,14 +30,13 @@ async def lifespan(app: FastAPI):
     logger.info("Elasticsearch indices ready")
 
     pdf_service = PDFService()
-    claude_service = ClaudeService()
     openai_assistant = OpenAILegalAssistant()
 
     # Wire up agents
     app.state.es_service = es_service
     app.state.ingestion_agent = IngestionAgent(
         pdf_service=pdf_service,
-        claude_service=claude_service,
+        openai_assistant=openai_assistant,
         embedding_service=embedding_service,
         es_service=es_service,
     )
@@ -48,11 +45,6 @@ async def lifespan(app: FastAPI):
         es_service=es_service,
     )
     app.state.openai_assistant = openai_assistant
-    app.state.review_agent = ReviewAgent(
-        claude_service=claude_service,
-        es_service=es_service,
-        search_agent=app.state.search_agent,
-    )
 
     logger.info("ClauseGuard is ready")
     yield
