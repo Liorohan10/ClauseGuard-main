@@ -67,13 +67,20 @@ def _severity_rank(value: str) -> int:
     return {"critical": 5, "high": 4, "medium": 3, "low": 2, "info": 1}.get(str(value).lower(), 0)
 
 
-def _citation_text(page: int | None, section: str, clause_id: str) -> str:
+def _citation_text(page: int | None, section: str, clause_id: str, excerpt: str = "") -> str:
     parts = [
         f"p. {page}" if page else "",
         f"sec. {section}" if section else "",
         f"clause {clause_id}" if clause_id else "",
     ]
-    return " · ".join(part for part in parts if part)
+    base = " · ".join(part for part in parts if part)
+    if not excerpt:
+        return base
+    
+    # Strip whitespace/newlines to keep Excel clean
+    excerpt_clean = " ".join(excerpt.strip().splitlines())
+    short = excerpt_clean[:80] + "…" if len(excerpt_clean) > 80 else excerpt_clean
+    return f'{base} · "{short}"' if base else f'"{short}"'
 
 
 def _law_list(laws: list[str]) -> str:
@@ -98,10 +105,12 @@ def _export_rows(review: ContractReviewOutput) -> list[tuple]:
     for item in review.compliance_findings:
         if str(item.status).lower() in ("pass", "not-applicable"):
             continue  # Only export actionable findings
+        if str(item.severity).lower() == "info":
+            continue  # Do not show info risk levels in excel sheet
         rows.append((
             item.issue_id or "",
             item.domain.upper() if hasattr(item, "domain") else "PRIVACY",
-            _citation_text(item.source_page, item.source_section, item.source_clause_id) or item.requirement,
+            _citation_text(item.source_page, item.source_section, item.source_clause_id, item.contract_excerpt or item.source_excerpt) or item.requirement,
             ", ".join(item.jurisdictions) if item.jurisdictions else "",
             item.explanation,
             str(item.severity).upper(),
@@ -115,27 +124,13 @@ def _export_rows(review: ContractReviewOutput) -> list[tuple]:
         rows.append((
             "",
             (item.domain.upper() if hasattr(item, "domain") else "PRIVACY"),
-            _citation_text(item.source_page, item.source_section, item.source_clause_id) or item.protection,
+            _citation_text(item.source_page, item.source_section, item.source_clause_id, item.contract_excerpt or item.source_excerpt) or item.protection,
             "",
             item.why_missing,
             "HIGH",
             _law_list(item.applicable_laws if hasattr(item, "applicable_laws") else []),
             item.suggested_clause or item.mitigation,
             item.mitigation,
-        ))
-
-    # Proposed redlines (spec section 5)
-    for item in review.redline_suggestions:
-        rows.append((
-            item.issue_id or "",
-            item.domain.upper() if hasattr(item, "domain") else "PRIVACY",
-            item.clause_reference,
-            "",
-            "Proposed Redline",
-            "REDLINE",
-            _law_list(item.applicable_laws),
-            item.proposed_wording or item.drafting_instruction,
-            item.drafting_instruction if item.proposed_wording else "",
         ))
 
     return rows
