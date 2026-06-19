@@ -1,8 +1,8 @@
 # ClauseGuard
 
-**ClauseGuard** is an enterprise-grade, multi-agent legal contract review system. It ingests contracts (PDFs, text files, and images), extracts clauses via AI, supports hybrid lexical/semantic search, and performs compliance reviews using either a parallel multi-agent audit or a template-based comparison grounded by expert legal precedents.
+**ClauseGuard** is an enterprise-grade, multi-agent legal contract review system. It ingests contracts (PDFs, text files, and images), extracts clauses via AI, supports hybrid lexical/semantic search, and performs compliance reviews using a sequential LangGraph-orchestrated agent workflow grounded by official regulations and expert legal precedents.
 
-The application is structured with a FastAPI backend, an Elasticsearch storage layer, a Sentence-Transformers local embedding model, and an interactive React web dashboard.
+The application is structured with a FastAPI backend, an Elasticsearch storage layer, a Sentence-Transformers local embedding model, a Cross-Encoder reranker, and an interactive React web dashboard.
 
 ---
 
@@ -19,18 +19,16 @@ graph TB
         API[REST API<br/><small>/api/v1</small>]
         IA[Ingestion Agent]
         SA[Search Agent]
-        RA[Review Agent]
-        OAI[OpenAILegalAssistant]
+        OAI[OpenAILegalAssistant<br/><small>LangGraph Orchestrated</small>]
         
         API --> IA
         API --> SA
-        API --> RA
         API --> OAI
     end
 
     subgraph Services["Core Services"]
         direction TB
-        LLM[LLM / Claude Service<br/><small>OpenAI-compatible</small>]
+        LLM[LLM Service<br/><small>OpenAI-compatible</small>]
         EMB[Embedding Service<br/><small>Sentence Transformers</small>]
         PDF[PDF Parsing Service<br/><small>PyMuPDF · Vision Fallback</small>]
     end
@@ -39,12 +37,12 @@ graph TB
         ES_Contracts[(Elasticsearch: contracts)]
         ES_Clauses[(Elasticsearch: clauses)]
         ES_CUAD[(Elasticsearch: cuad)]
+        ES_Regs[(Elasticsearch: official-regs)]
         ES_Reviews[(Elasticsearch: contracts-reviews)]
     end
 
     UI -- "API Proxy" --> API
     IA --> PDF
-    IA --> LLM
     IA --> EMB
     IA --> ES_Contracts
     IA --> ES_Clauses
@@ -53,12 +51,10 @@ graph TB
     SA --> ES_Clauses
     SA --> ES_CUAD
     
-    RA --> LLM
-    RA --> ES_Contracts
-    RA --> ES_Clauses
-    RA --> SA
-    
     OAI --> LLM
+    OAI --> EMB
+    OAI --> ES_Regs
+    OAI --> ES_Reviews
     
     style Frontend fill:#eff6ff,stroke:#3b82f6,color:#1e3a5f
     style Backend fill:#f0fdf4,stroke:#22c55e,color:#14532d
@@ -71,7 +67,11 @@ graph TB
 ## Detailed Data Flow (Ingestion to Output)
 
 ### 1. Data Ingestion Pipeline
-When a contract is uploaded via the UI or seed scripts, the system processes it through a strict multi-stage ingestion pipeline implemented in `IngestionAgent` ([ingestion.py](file:///c:/Users/rohan/Documents/ClauseGuard-main/clauseguard/agents/ingestion.py)):
+
+ClauseGuard provides two specialized ingestion pipelines: one for user contracts and one for official regulatory databases.
+
+#### A. Contract Ingestion
+When a contract is uploaded via the UI or seed scripts, the system processes it through a multi-stage ingestion pipeline coordinated by `IngestionAgent` ([ingestion.py](file:///c:/Users/rohan/Documents/ClauseGuard-copy/clauseguard/agents/ingestion.py)):
 
 ```mermaid
 flowchart TD
@@ -89,17 +89,29 @@ flowchart TD
 ```
 
 * **Parsing**: Handles text and PDF uploads via PyMuPDF (`fitz`). If a PDF page is scanned and lacks text, it falls back to rendering page images as PNG/JPEG base64 payloads to process via the configured vision model (e.g. `gpt-4o`).
-* **LLM Clause Extraction**: Sends parsed text to `ClaudeService` to identify distinct legal clauses verbatim and categorize them into a standard `ClauseType` (e.g., `indemnity`, `liability_cap`, `termination`, `confidentiality`, `governing_law`, `data_protection`, `ip_assignment`, `force_majeure`, or `other`).
+* **LLM Clause Extraction**: Sends parsed text to the configured LLM to identify distinct legal clauses verbatim and categorize them into a standard `ClauseType` (e.g., `indemnity`, `liability_cap`, `termination`, `confidentiality`, `governing_law`, `data_protection`, `ip_assignment`, `force_majeure`, or `other`).
 * **Offset Correction**: Verifies the exact starting and ending characters of each clause in the source text using fuzzy substring matching against the LLM's approximate offset coordinates.
 * **Vector Embeddings**: Encodes clause texts into 384-dimensional dense vectors using a local Sentence-Transformers model (`all-MiniLM-L6-v2`).
 * **Elasticsearch Storage**: 
-  * Indexes contract metadata (e.g. title, page counts, timestamp, clauses found) in `clauseguard-contracts`.
+  * Indexes contract metadata in `clauseguard-contracts`.
   * Indexes individual clauses, parent references, offsets, and their dense vector embeddings in `clauseguard-clauses`.
+
+#### B. Hierarchical Official Regulations Ingestion (RAG Index)
+To ground evaluations in binding legal authority, official regulatory bodies are ingested using `ingest_official_regs.py` ([ingest_official_regs.py](file:///c:/Users/rohan/Documents/ClauseGuard-copy/scripts/ingest_official_regs.py)):
+* **Files Processed**:
+  * `GDPR.pdf` (Official GDPR Privacy Principles)
+  * `Australian Privacy Act.pdf` (Australian Privacy Act)
+  * `EU Export Control.pdf` (EU Export Control Principles)
+  * `Australia Export Control.pdf` (Australian Export Control Act)
+* **Hierarchical Scanning**: The parser scans for major divisions (Chapters, Parts, Sections, Divisions, Articles, Principles) to index hierarchy tags and summaries.
+* **Child-Parent Chunking**: Splitting is executed using overlapping token windows (500–800 tokens). To preserve semantic context, each child chunk is prepended with the parent's title, summary, and location hierarchy.
+* **Elasticsearch Index**: Document metadata and vectors are stored in `clauseguard-official-regs`.
 
 ---
 
 ### 2. Hybrid Lexical & Semantic Search
-ClauseGuard uses a hybrid search agent ([search.py](file:///c:/Users/rohan/Documents/ClauseGuard-main/clauseguard/agents/search.py)) to fetch clauses from indexed contracts or expert CUAD annotations:
+
+ClauseGuard uses a hybrid search agent ([search.py](file:///c:/Users/rohan/Documents/ClauseGuard-copy/clauseguard/agents/search.py)) to fetch clauses from indexed contracts or expert CUAD annotations:
 
 ```mermaid
 flowchart LR
@@ -114,34 +126,59 @@ flowchart LR
 * **Custom Analysis**: Uses `legal_analyzer` (standard tokenizer + lowercase + stopword + snowball stemming filters) for precise matches of legal terms.
 * **Reciprocal Rank Fusion (RRF)**: Merges the scores of BM25 (exact keyword match) and kNN (semantic cosine similarity) queries. It calculates:
   $$\text{RRF\_score} = \sum_{m \in M} \frac{1}{60 + \text{rank}_m}$$
-  This ensures results appearing high in both keyword and vector searches are prioritized.
-* **CUAD Database**: A separate command-line tool parses the CUADv1 dataset (`CUADv1.json`) and populates a specialized `clauseguard-cuad` index with thousands of expert-annotated legal precedents to ground contract comparisons.
 
 ---
 
-### 3. Compliance Review & Multi-Agent Risk Audit
-The compliance audit features two primary pipelines:
+### 3. Compliance Review & LangGraph Sequential Agent Workflow
 
-#### Pipeline A: Parallel 5-Agent Review (Active Web Endpoint)
-Triggered by `review_contract` in [review.py](file:///c:/Users/rohan/Documents/ClauseGuard-main/clauseguard/api/review.py). It reconstructs the chronological contract flow and invokes `OpenAILegalAssistant` ([openai_assistant.py](file:///c:/Users/rohan/Documents/ClauseGuard-main/clauseguard/openai_assistant.py)) to spawn 5 specialized auditing subagents in parallel:
-1. **Clause Analysis Agent**: Generates short names, category normalizations, impact summaries, and recommendations.
-2. **Risk Assessment Agent**: Identifies legal, operational, and commercial risks, highlighting severity (High, Medium, Low, Info) and mitigations.
-3. **Compliance Audit Agent**: Evaluates compliance obligations (e.g. DPA, GDPR/CCPA) and tags status (Pass, Fail, Partial, N/A).
-4. **Negotiation Strategy Agent**: Formulates negotiation objectives, leveraging counterparty positions, and draft alternative text.
-5. **Missing Protections Agent**: Pinpoints gaps, providing justifications and suggested draft clauses.
+ClauseGuard reviews contracts through `OpenAILegalAssistant` ([openai_assistant.py](file:///c:/Users/rohan/Documents/ClauseGuard-copy/clauseguard/openai_assistant.py)), which builds and executes a sequential **LangGraph Agent Workflow** composed of 8 nodes:
 
-The assistant aggregates these audits, computes a **Safety Score** (deducting points for high/critical findings and missing protections), calls the LLM to write a concise **Executive Summary**, and saves the result in `contracts-reviews`.
+```mermaid
+flowchart TD
+    Start([Start Review]) --> JNode[jurisdiction_node<br/>Identify Regimes: Privacy & Export]
+    JNode --> CMapNode[contract_map_node<br/>Forensic coordinate list mapping]
+    CMapNode --> CoordNode[coordinate_node<br/>Map compliance tests to clauses]
+    CoordNode --> RAGNode[rag_node<br/>Retrieve & Cross-Encoder rank regulations]
+    
+    RAGNode --> Route1{Privacy Triggered?}
+    Route1 -- Yes --> PNode[privacy_node<br/>15 Privacy audits + Contradiction re-review]
+    Route1 -- No --> Route2{Export Triggered?}
+    
+    PNode --> Route2
+    Route2 -- Yes --> ENode[export_node<br/>10 Export audits + Contradiction re-review]
+    Route2 -- No --> VNode[verification_node<br/>Deterministic verification]
+    
+    ENode --> VNode
+    VNode --> DNode[decision_node<br/>Qualitative Decision & Redline Suggestions]
+    DNode --> End([End Review])
+```
 
-#### Pipeline B: Template-based Review (Agent Workflow)
-Executed by `ReviewAgent` ([review.py](file:///c:/Users/rohan/Documents/ClauseGuard-main/clauseguard/agents/review.py)), this pipeline matches the contract's clauses directly against company-approved baseline templates (`DEFAULT_TEMPLATES` in [defaults.py](file:///c:/Users/rohan/Documents/ClauseGuard-main/clauseguard/templates/defaults.py)). 
-For each clause, it queries the `clauseguard-cuad` index to fetch matching expert legal precedents, passing them to the LLM to establish grounded comparisons and identify template deviations.
+#### Node Execution Details:
+1. **Jurisdiction Identification Node (`jurisdiction_node`)**: Evaluates the contract text to check if the primary privacy (EU GDPR or Australian Privacy Act) or export control regimes (EU or Australian Export Control) apply. Sets boolean triggers (`privacy_triggered` and `export_triggered`).
+2. **Contract Coordinate Map Node (`contract_map_node`)**: Scans all contract elements to produce a structured map containing page numbers, section identifiers, headings, and starting text coordinates.
+3. **Compliance Test Coordinate Mapping Node (`coordinate_node`)**: Maps the 15 privacy and/or 10 export compliance tests to candidate contract clauses.
+4. **Regulatory RAG Node (`rag_node`)**: Searches `clauseguard-official-regs` in Elasticsearch. It ranks and selects matching official regulatory clauses using a **Cross-Encoder model** (`cross-encoder/ms-marco-MiniLM-L-6-v2`) to provide context for the audit.
+5. **Privacy Compliance Audit Node (`privacy_node`)**: Audits the contract against 15 key privacy controls (e.g. TOMs, Retention, Breach Timeframes) incorporating:
+   * **Applicability Gates**: Bypasses irrelevant controls (e.g. "Children's Data Protections" is marked `NOT_APPLICABLE` with `1.0` confidence if no matching child-data keywords exist).
+   * **Legal Adequacy Evaluation**: Evaluates whether contract language satisfies obligations, allowing semantic equivalents.
+   * **Contradiction Detection / Rereview**: If a control is initially marked `ABSENT` but keyword queries locate relevant contract text, it triggers a secondary re-review to correct the status to `PRESENT` or `PARTIALLY_PRESENT`, preventing false negatives.
+   * **Confidence Calibration**: Limits confidence based on evidence presence (caps of 40% for ABSENT, 70% for PARTIALLY_PRESENT, and up to 95% for PRESENT).
+   * **Relevance Filtering**: Ignores proximity false positives (e.g. ensuring data storage clauses do not satisfy deletion requirements).
+6. **Export Control Compliance Audit Node (`export_node`)**: Audits the contract against 10 export control tests using RAG grounding, applicability gates, and confidence calibration.
+7. **Authoritative Verification Node (`verification_node`)**: Validates findings deterministically against the retrieved regulations context.
+8. **Qualitative Decision Node (`decision_node`)**: Generates an **Executive Summary**, compiles **Redline Suggestions** for failed/partial controls, assigns a **Final Decision Outcome** (`PASS`, `CONDITIONAL_PASS`, or `FAIL`), and saves the review in `contracts-reviews`.
+
+#### Legal Knowledge Base Single Source of Truth
+Operating parameters, triggers, and specific regulations for dozens of global jurisdictions (including EU/EEA, UK, USA, India DPDP Act, Singapore, South Korea, China, UAE/DIFC/ADGM, and Saudi Arabia) are managed by `clauseguard/legal_knowledge.py` ([legal_knowledge.py](file:///c:/Users/rohan/Documents/ClauseGuard-copy/clauseguard/legal_knowledge.py)). It serves as a dependency-free, memory-only rule library.
 
 ---
 
 ### 4. Output Generation & Exports
-* **Interactive UI**: Users inspect the safety gauge, executive summary, risk breakdown cards, missing protection suggestions, and negotiation redlines directly on the React frontend.
-* **PDF Report (CLI)**: Running the CLI command calls `generate_legal_pdf` ([generate_legal_pdf.py](file:///c:/Users/rohan/Documents/ClauseGuard-main/scripts/generate_legal_pdf.py)) using ReportLab to write a professional, table-based legal audit PDF to disk.
-* **Excel Export (Web & API)**: Generates a multi-sheet spreadsheet using `openpyxl` with color-coded severity metrics, auto-fitted cells, and frozen headers.
+
+* **Interactive UI**: Displays the final safety gauge, executive summaries, risk categorization cards, missing protections, and suggested redline panels.
+* **PDF Report (CLI)**: Compiles structured audit reports with styled ReportLab tables using `generate_legal_pdf.py` ([generate_legal_pdf.py](file:///c:/Users/rohan/Documents/ClauseGuard-copy/scripts/generate_legal_pdf.py)).
+* **Excel Export (Web & API)**: Generates detailed sheets using `openpyxl` with color-coded severities, frozen panes, and columns for:
+  `Issue ID` | `Domain` | `Clause / Section` | `Jurisdiction(s)` | `Finding` | `Risk Level` | `Applicable Laws` | `Recommended Redline` | `Fallback Position`
 
 ---
 
@@ -150,10 +187,10 @@ For each clause, it queries the `clauseguard-cuad` index to fetch matching exper
 | Component | Technology | Description |
 |:------|:-----------|:------------|
 | **Frontend** | React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui, Lucide Icons | Responsive legal dashboard, file uploader, and interactive visual audits. |
-| **Backend** | Python 3.10+, FastAPI, Pydantic v2, Pydantic-Settings, Uvicorn | Async web API, agent orchestration, and pipeline services. |
+| **Backend** | Python 3.10+, FastAPI, Pydantic v2, Pydantic-Settings, Uvicorn, LangGraph, LangChain | Async web API, sequential agent graphs, and pipeline services. |
 | **Search Engine**| Elasticsearch 8.16+ | Handles BM25 text indices, kNN cosine vector fields, and RRF rank fusion. |
-| **Embeddings** | Sentence Transformers (`all-MiniLM-L6-v2`) | Local execution converting text chunks into 384-dimensional dense vectors. |
-| **LLM Services** | OpenAI / Claude API (compatible endpoint) | Performs clause extraction, agent review loops, summaries, and generation. |
+| **Embeddings & Ranking**| Sentence Transformers (`all-MiniLM-L6-v2`), CrossEncoder (`ms-marco-MiniLM-L-6-v2`) | Embeds text and reranks retrieved regulations context. |
+| **LLM Services** | OpenAI API (compatible endpoint) | Executes agent workflows, clause extraction, decisions, and summarization. |
 | **Parsing & PDF** | PyMuPDF (`fitz`), PyPDF2 | Extracts layout text, counts pages, and renders page images for vision OCR. |
 | **Reports** | ReportLab, openpyxl | Programmatically compiles legal PDFs and styled Excel sheets. |
 
@@ -166,21 +203,21 @@ ClauseGuard/
 ├── clauseguard/                    # Backend Source Code
 │   ├── main.py                     # FastAPI application setup, lifespan events, and Uvicorn runner
 │   ├── config.py                   # Pydantic BaseSettings loading configs from .env
-│   ├── openai_assistant.py         # Async multi-agent workflow driver utilizing OpenAI Chat client
+│   ├── openai_assistant.py         # Sequential LangGraph compliance review agent workflow driver
+│   ├── legal_knowledge.py          # Single source of truth for operating rules, triggers, and global jurisdictions
+│   ├── search.py                   # Custom search utilities and fallback module
 │   ├── agents/                     # Processing Agents
-│   │   ├── ingestion.py            # Coordinate text extraction, clause parser, offsets, embeddings, and ES indexing
-│   │   ├── search.py               # Orchestrates BM25 + kNN hybrid searches and CUAD retrieval queries
-│   │   └── review.py               # Evaluates clauses against baseline templates grounded by CUAD examples
+│   │   ├── ingestion.py            # Coordinate contract text extraction, clause parser, offsets, and embeddings
+│   │   └── search.py               # Orchestrates BM25 + kNN hybrid searches and CUAD retrieval queries
 │   ├── services/                   # Utility Wrappers
-│   │   ├── claude_service.py       # Handles OpenAI-compatible requests, prompt templates, and backoff retries
 │   │   ├── elasticsearch_service.py# Manages ES mappings, indexing, and Reciprocal Rank Fusion queries
 │   │   ├── embedding_service.py    # Implements Sentence Transformers for local vector generation
 │   │   └── pdf_service.py          # Extracts text from PDFs and TXT files using PyMuPDF
-│   ├── models/                 # Pydantic Schemas
+│   ├── models/                     # Pydantic Schemas
 │   │   ├── clause.py               # ExtractedClause and ClauseType structures
 │   │   ├── contract.py             # ContractMetadata and responses
-│   │   ├── cuad.py                 # CUAD search request and response structures
-│   │   ├── openai_legal.py         # 5-Agent outputs, safety scores, and generation schemas
+│   │   ├── cuad.py                 # CUAD search structures
+│   │   ├── openai_legal.py         # Structured output schemas, final decisions, and redline suggestions
 │   │   ├── report.py               # Template finding schemas and severities
 │   │   ├── search.py               # Search parameters and hits
 │   │   └── template.py             # ClauseTemplate parameters
@@ -195,10 +232,15 @@ ClauseGuard/
 │   └── package.json
 ├── scripts/                        # Maintenance & CLI Utilities
 │   ├── generate_legal_pdf.py       # Helper creating styled ReportLab PDFs
+│   ├── ingest_official_regs.py    # Ingests and chunk-indexes official regulatory PDFs (GDPR, Privacy Act) in ES
 │   ├── load_cuad.py                # Command to seed and vector-index CUADv1 dataset
+│   ├── run_regression_suite.py     # Runs automated assertions checking compliance audits on sample PDFs (e.g. Interflex)
+│   ├── test_accuracy.py            # Tests mapping accuracy, proximity false-positives, and inapplicable gating
+│   ├── test_evidence_grounding.py  # Tests mock contract evidence status evaluation
+│   ├── test_search.py              # Validates BM25 and vector search utilities
 │   ├── test_review_export.py       # Test script generating sample Excel review sheets
 │   └── run_openai_test.py          # Quick connection sanity check for the OpenAI API
-├── sample_contracts/               # Standard legal files for seeding (NDAs, SaaS, Services)
+├── sample_contracts/               # Standard legal files for seeding (NDAs, DPA, Services)
 ├── seed.sh                         # Bash script to parse and upload sample contracts
 ├── docker-compose.yml              # Configures local Elasticsearch Docker container
 ├── pyproject.toml                  # Python package metadata and requirements
@@ -226,7 +268,7 @@ Copy the sample environment file and enter your API credentials:
 ```bash
 cp .env.example .env
 ```
-Ensure your `.env` contains valid OpenAI endpoints and keys:
+Ensure your `.env` contains valid OpenAI parameters:
 ```env
 OPENAI_API_KEY=sk-your-openai-api-key
 OPENAI_BASE_URL=https://api.openai.com/v1
@@ -240,9 +282,15 @@ Install the package in editable mode and run the development server:
 pip install -e .
 clauseguard
 ```
-The FastAPI backend starts at `http://localhost:8000`. On first start, it will automatically download the local embedding model (`~80MB`).
+The FastAPI backend starts at `http://localhost:8000`. On first start, it will download local embedding and Cross-Encoder ranking models.
 
-### 4. CLI Auditing & Generation
+### 4. Index Official Regulations (Required for RAG)
+Run the script to parse and vector-index GDPR and export control PDF documents:
+```bash
+python scripts/ingest_official_regs.py
+```
+
+### 5. CLI Auditing & Generation
 Use the `legal.py` CLI tool to run reviews and generation from the command line:
 ```bash
 # Run a full compliance audit and generate a PDF report next to the contract
@@ -250,12 +298,9 @@ python legal.py review sample_contracts/sample_nda.txt
 
 # Run risk analysis only
 python legal.py risks sample_contracts/sample_nda.txt
-
-# Generate a business NDA draft from a description
-python legal.py nda "Mutual NDA for software services engagement"
 ```
 
-### 5. Install & Start Frontend
+### 6. Install & Start Frontend
 In a separate terminal, navigate to the frontend directory, install packages, and start the development server:
 ```bash
 cd frontend
@@ -264,19 +309,31 @@ npm run dev
 ```
 Open `http://localhost:5173` in your browser. The Vite dev server will proxy API requests to port `8000`.
 
-### 6. Seeding Sample Contracts (Optional)
-To quickly populate the dashboard with 8 sample contracts (NDAs, SaaS agreements, consulting contracts, etc.):
+### 7. Seeding Sample Contracts (Optional)
+To quickly populate the dashboard with sample contracts:
 ```bash
 bash seed.sh
 ```
 
-### 7. Seeding the CUAD Database (Optional)
+### 8. Seeding the CUAD Database (Optional)
 To index the expert-annotated CUAD database for template-based grounding:
 1. Download the `CUADv1.json` dataset and place it in the project root.
 2. Run the loader script:
    ```bash
    python scripts/load_cuad.py --path CUADv1.json
    ```
+
+### 9. Running Tests (Optional)
+To run accuracy, grounding, and regression tests verifying the sequential LangGraph nodes:
+```bash
+# Run regression tests on sample documents
+python scripts/run_regression_suite.py
+
+# Run accuracy and evidence grounding checks
+python scripts/test_accuracy.py
+python scripts/test_evidence_grounding.py
+python scripts/test_search.py
+```
 
 ---
 
