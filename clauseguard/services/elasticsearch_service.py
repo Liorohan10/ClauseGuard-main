@@ -23,43 +23,6 @@ CONTRACTS_MAPPINGS = {
     }
 }
 
-CUAD_SETTINGS = {
-    "analysis": {
-        "analyzer": {
-            "legal_analyzer": {
-                "type": "custom",
-                "tokenizer": "standard",
-                "filter": ["lowercase", "stop", "snowball"],
-            }
-        }
-    }
-}
-
-CUAD_MAPPINGS = {
-    "properties": {
-        "example_id": {"type": "keyword"},
-        "source_contract_id": {"type": "keyword"},
-        "title": {"type": "keyword"},
-        "paragraph_index": {"type": "integer"},
-        "qas_id": {"type": "keyword"},
-        "cuad_label": {"type": "keyword"},
-        "clause_type": {"type": "keyword"},
-        "question": {"type": "text", "analyzer": "legal_analyzer"},
-        "answer_text": {"type": "text", "analyzer": "legal_analyzer"},
-        "context": {"type": "text", "analyzer": "legal_analyzer"},
-        "context_excerpt": {"type": "text", "analyzer": "legal_analyzer"},
-        "text": {"type": "text", "analyzer": "legal_analyzer"},
-        "text_embedding": {
-            "type": "dense_vector",
-            "dims": 384,
-            "index": True,
-            "similarity": "cosine",
-        },
-        "answer_start": {"type": "integer"},
-        "answer_end": {"type": "integer"},
-        "is_impossible": {"type": "boolean"},
-    }
-}
 
 REVIEWS_MAPPINGS = {
     "properties": {
@@ -142,7 +105,6 @@ class ElasticsearchService:
         self.es = AsyncElasticsearch(es_url or settings.elasticsearch_url)
         self.contracts_index = settings.es_contracts_index
         self.clauses_index = settings.es_clauses_index
-        self.cuad_index = settings.es_cuad_index
         self.reviews_index = f"{self.contracts_index}-reviews"
         self.official_regs_index = "clauseguard-official-regs"
 
@@ -161,14 +123,6 @@ class ElasticsearchService:
                 mappings=CLAUSES_MAPPINGS,
             )
             logger.info("Created index: %s", self.clauses_index)
-
-        if not await self.es.indices.exists(index=self.cuad_index):
-            await self.es.indices.create(
-                index=self.cuad_index,
-                settings=CUAD_SETTINGS,
-                mappings=CUAD_MAPPINGS,
-            )
-            logger.info("Created index: %s", self.cuad_index)
 
         if not await self.es.indices.exists(index=self.reviews_index):
             await self.es.indices.create(
@@ -240,54 +194,6 @@ class ElasticsearchService:
                 if "error" in item.get("index", {}):
                     logger.error("Bulk index error: %s", item["index"]["error"])
         return len(clauses)
-
-    async def bulk_index_cuad_examples(self, examples: list[dict]) -> int:
-        """Bulk index CUAD example documents. Returns count indexed."""
-        if not examples:
-            return 0
-
-        # Keep each request well below ES http.max_content_length to avoid 413s.
-        max_docs_per_batch = 100
-        max_batch_bytes = 8 * 1024 * 1024
-
-        indexed = 0
-        batch: list[dict] = []
-        batch_bytes = 0
-
-        async def flush() -> None:
-            nonlocal indexed, batch, batch_bytes
-            if not batch:
-                return
-            resp = await self.es.bulk(operations=batch, refresh="wait_for")
-            if resp.get("errors"):
-                for item in resp["items"]:
-                    if "error" in item.get("index", {}):
-                        logger.error("CUAD bulk index error: %s", item["index"]["error"])
-            indexed += len(batch) // 2
-            batch = []
-            batch_bytes = 0
-
-        for example in examples:
-            action = {"index": {"_index": self.cuad_index, "_id": example["example_id"]}}
-            # Approximate NDJSON bytes for sizing decisions.
-            pair_bytes = (
-                len(json.dumps(action, ensure_ascii=False).encode("utf-8"))
-                + len(json.dumps(example, ensure_ascii=False).encode("utf-8"))
-                + 2
-            )
-
-            would_exceed_docs = (len(batch) // 2) >= max_docs_per_batch
-            would_exceed_bytes = batch_bytes + pair_bytes > max_batch_bytes
-            if batch and (would_exceed_docs or would_exceed_bytes):
-                await flush()
-
-            batch.append(action)
-            batch.append(example)
-            batch_bytes += pair_bytes
-
-        await flush()
-        logger.info("Indexed %d CUAD examples in batches", indexed)
-        return indexed
 
     async def get_clauses_by_contract(self, contract_id: str) -> list[dict]:
         """Get all clauses for a contract."""
@@ -462,28 +368,6 @@ class ElasticsearchService:
 
         return await self._hybrid_search_rrf(
             index_name=self.clauses_index,
-            query_text=query_text,
-            query_vector=query_vector,
-            filters=filters or None,
-            top_k=top_k,
-            rank_constant=rank_constant,
-        )
-
-    async def hybrid_search_cuad_rrf(
-        self,
-        query_text: str,
-        query_vector: list[float],
-        clause_type: str | None = None,
-        top_k: int = 5,
-        rank_constant: int = 60,
-    ) -> list[dict]:
-        """Hybrid BM25 + kNN search over CUAD expert examples."""
-        filters = []
-        if clause_type:
-            filters.append({"term": {"clause_type": clause_type}})
-
-        return await self._hybrid_search_rrf(
-            index_name=self.cuad_index,
             query_text=query_text,
             query_vector=query_vector,
             filters=filters or None,

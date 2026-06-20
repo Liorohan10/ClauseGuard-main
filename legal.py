@@ -8,16 +8,14 @@ import logging
 
 from clauseguard.models.openai_legal import NDAGenerationOutput
 from clauseguard.openai_assistant import OpenAILegalAssistant
-from scripts.generate_legal_pdf import generate_legal_pdf
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="ClauseGuard OpenAI legal assistant")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    review = subparsers.add_parser("review", help="Run a full contract review and generate a PDF report")
+    review = subparsers.add_parser("review", help="Run a full contract review and output a JSON report")
     review.add_argument("file_path", help="Path to the contract file")
-    review.add_argument("--output", help="Optional output PDF path")
 
     risks = subparsers.add_parser("risks", help="Run risk analysis only")
     risks.add_argument("file_path", help="Path to the contract file")
@@ -28,11 +26,9 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-async def _run_review(assistant: OpenAILegalAssistant, file_path: str, output: str | None) -> None:
+async def _run_review(assistant: OpenAILegalAssistant, file_path: str) -> None:
     review = await assistant.analyze_contract(file_path)
-    pdf_path = generate_legal_pdf(review, output_path=output)
     print(json.dumps(review.model_dump(), indent=2))
-    print(f"PDF report written to {pdf_path}")
 
 
 async def _run_risks(assistant: OpenAILegalAssistant, file_path: str) -> None:
@@ -51,7 +47,7 @@ async def main_async(argv: list[str] | None = None) -> None:
     assistant = OpenAILegalAssistant()
 
     if args.command == "review":
-        await _run_review(assistant, args.file_path, args.output)
+        await _run_review(assistant, args.file_path)
     elif args.command == "risks":
         await _run_risks(assistant, args.file_path)
     elif args.command == "nda":

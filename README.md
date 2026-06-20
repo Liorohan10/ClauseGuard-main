@@ -36,7 +36,6 @@ graph TB
     subgraph Storage["Storage & Indexing"]
         ES_Contracts[(Elasticsearch: contracts)]
         ES_Clauses[(Elasticsearch: clauses)]
-        ES_CUAD[(Elasticsearch: cuad)]
         ES_Regs[(Elasticsearch: official-regs)]
         ES_Reviews[(Elasticsearch: contracts-reviews)]
     end
@@ -46,10 +45,6 @@ graph TB
     IA --> EMB
     IA --> ES_Contracts
     IA --> ES_Clauses
-    
-    SA --> EMB
-    SA --> ES_Clauses
-    SA --> ES_CUAD
     
     OAI --> LLM
     OAI --> EMB
@@ -111,7 +106,7 @@ To ground evaluations in binding legal authority, official regulatory bodies are
 
 ### 2. Hybrid Lexical & Semantic Search
 
-ClauseGuard uses a hybrid search agent ([search.py](file:///c:/Users/rohan/Documents/ClauseGuard-copy/clauseguard/agents/search.py)) to fetch clauses from indexed contracts or expert CUAD annotations:
+ClauseGuard uses a hybrid search agent ([search.py](file:///c:/Users/rohan/Documents/ClauseGuard-copy/clauseguard/agents/search.py)) to fetch clauses from indexed contracts:
 
 ```mermaid
 flowchart LR
@@ -176,7 +171,6 @@ Operating parameters, triggers, and specific regulations for dozens of global ju
 ### 4. Output Generation & Exports
 
 * **Interactive UI**: Displays the final safety gauge, executive summaries, risk categorization cards, missing protections, and suggested redline panels.
-* **PDF Report (CLI)**: Compiles structured audit reports with styled ReportLab tables using `generate_legal_pdf.py` ([generate_legal_pdf.py](file:///c:/Users/rohan/Documents/ClauseGuard-copy/scripts/generate_legal_pdf.py)).
 * **Excel Export (Web & API)**: Generates detailed sheets using `openpyxl` with color-coded severities, frozen panes, and columns for:
   `Issue ID` | `Domain` | `Clause / Section` | `Jurisdiction(s)` | `Finding` | `Risk Level` | `Applicable Laws` | `Recommended Redline` | `Fallback Position`
 
@@ -192,7 +186,7 @@ Operating parameters, triggers, and specific regulations for dozens of global ju
 | **Embeddings & Ranking**| Sentence Transformers (`all-MiniLM-L6-v2`), CrossEncoder (`ms-marco-MiniLM-L-6-v2`) | Embeds text and reranks retrieved regulations context. |
 | **LLM Services** | OpenAI API (compatible endpoint) | Executes agent workflows, clause extraction, decisions, and summarization. |
 | **Parsing & PDF** | PyMuPDF (`fitz`), PyPDF2 | Extracts layout text, counts pages, and renders page images for vision OCR. |
-| **Reports** | ReportLab, openpyxl | Programmatically compiles legal PDFs and styled Excel sheets. |
+| **Reports** | openpyxl | Programmatically compiles styled Excel sheets. |
 
 ---
 
@@ -205,10 +199,9 @@ ClauseGuard/
 │   ├── config.py                   # Pydantic BaseSettings loading configs from .env
 │   ├── openai_assistant.py         # Sequential LangGraph compliance review agent workflow driver
 │   ├── legal_knowledge.py          # Single source of truth for operating rules, triggers, and global jurisdictions
-│   ├── search.py                   # Custom search utilities and fallback module
 │   ├── agents/                     # Processing Agents
 │   │   ├── ingestion.py            # Coordinate contract text extraction, clause parser, offsets, and embeddings
-│   │   └── search.py               # Orchestrates BM25 + kNN hybrid searches and CUAD retrieval queries
+│   │   └── search.py               # Orchestrates BM25 + kNN hybrid searches
 │   ├── services/                   # Utility Wrappers
 │   │   ├── elasticsearch_service.py# Manages ES mappings, indexing, and Reciprocal Rank Fusion queries
 │   │   ├── embedding_service.py    # Implements Sentence Transformers for local vector generation
@@ -216,13 +209,8 @@ ClauseGuard/
 │   ├── models/                     # Pydantic Schemas
 │   │   ├── clause.py               # ExtractedClause and ClauseType structures
 │   │   ├── contract.py             # ContractMetadata and responses
-│   │   ├── cuad.py                 # CUAD search structures
 │   │   ├── openai_legal.py         # Structured output schemas, final decisions, and redline suggestions
-│   │   ├── report.py               # Template finding schemas and severities
-│   │   ├── search.py               # Search parameters and hits
-│   │   └── template.py             # ClauseTemplate parameters
-│   └── templates/
-│       └── defaults.py             # Default compliance templates (Indemnity, Liability, NDA, GDPR, etc.)
+│   │   └── search.py               # Search parameters and hits
 ├── frontend/                       # React Frontend Application
 │   ├── src/
 │   │   ├── pages/                  # Dashboard, Upload, Detail, Search, Review views
@@ -231,13 +219,10 @@ ClauseGuard/
 │   │   └── types/                  # TypeScript API declarations
 │   └── package.json
 ├── scripts/                        # Maintenance & CLI Utilities
-│   ├── generate_legal_pdf.py       # Helper creating styled ReportLab PDFs
 │   ├── ingest_official_regs.py    # Ingests and chunk-indexes official regulatory PDFs (GDPR, Privacy Act) in ES
-│   ├── load_cuad.py                # Command to seed and vector-index CUADv1 dataset
 │   ├── run_regression_suite.py     # Runs automated assertions checking compliance audits on sample PDFs (e.g. Interflex)
 │   ├── test_accuracy.py            # Tests mapping accuracy, proximity false-positives, and inapplicable gating
 │   ├── test_evidence_grounding.py  # Tests mock contract evidence status evaluation
-│   ├── test_search.py              # Validates BM25 and vector search utilities
 │   ├── test_review_export.py       # Test script generating sample Excel review sheets
 │   └── run_openai_test.py          # Quick connection sanity check for the OpenAI API
 ├── sample_contracts/               # Standard legal files for seeding (NDAs, DPA, Services)
@@ -293,7 +278,7 @@ python scripts/ingest_official_regs.py
 ### 5. CLI Auditing & Generation
 Use the `legal.py` CLI tool to run reviews and generation from the command line:
 ```bash
-# Run a full compliance audit and generate a PDF report next to the contract
+# Run a full compliance audit and output a JSON report
 python legal.py review sample_contracts/sample_nda.txt
 
 # Run risk analysis only
@@ -315,15 +300,7 @@ To quickly populate the dashboard with sample contracts:
 bash seed.sh
 ```
 
-### 8. Seeding the CUAD Database (Optional)
-To index the expert-annotated CUAD database for template-based grounding:
-1. Download the `CUADv1.json` dataset and place it in the project root.
-2. Run the loader script:
-   ```bash
-   python scripts/load_cuad.py --path CUADv1.json
-   ```
-
-### 9. Running Tests (Optional)
+### 8. Running Tests (Optional)
 To run accuracy, grounding, and regression tests verifying the sequential LangGraph nodes:
 ```bash
 # Run regression tests on sample documents
@@ -332,7 +309,6 @@ python scripts/run_regression_suite.py
 # Run accuracy and evidence grounding checks
 python scripts/test_accuracy.py
 python scripts/test_evidence_grounding.py
-python scripts/test_search.py
 ```
 
 ---
@@ -351,7 +327,6 @@ The following environment variables configure the backend (defined in `clausegua
 | `EMBEDDING_MODEL`| `all-MiniLM-L6-v2` | Sentence-Transformer model loaded on startup |
 | `ES_CONTRACTS_INDEX` | `clauseguard-contracts` | Name of the index storing contract metadatas |
 | `ES_CLAUSES_INDEX` | `clauseguard-clauses` | Name of the index storing clause text and vector fields |
-| `ES_CUAD_INDEX` | `clauseguard-cuad` | Name of the index storing CUAD precedents |
 | `OPENAI_DUMP_DIR`| `openai_dumps` | Folder storing query audit logs |
 
 ---
@@ -370,7 +345,6 @@ All backend endpoints are prefixed with `/api/v1`.
 | `GET` | `/contracts/{id}` | Fetches metadata for a specific contract |
 | `GET` | `/contracts/{id}/clauses` | Fetches extracted clauses of a contract |
 | `POST` | `/search/` | Performs hybrid search across clauses |
-| `POST` | `/search/cuad` | Performs hybrid search across CUAD precedents |
 | `POST` | `/review/{contract_id}` | Runs multi-agent compliance review on a contract |
 | `GET` | `/review/{contract_id}/latest` | Fetches latest review for a contract |
 | `GET` | `/review/{contract_id}/history` | Fetches all previous reviews for a contract |

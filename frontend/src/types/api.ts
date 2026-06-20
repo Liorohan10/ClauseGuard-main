@@ -263,30 +263,5 @@ export interface ContractReviewOutput {
   document_type: string;
 }
 
-// ---------------------------------------------------------------------------
-// Legacy report types (used by older /report endpoint)
-// ---------------------------------------------------------------------------
 
-export interface Finding {
-  clause_type: ClauseType;
-  severity: Severity;
-  clause_text: string;
-  template_text: string;
-  deviation: string;
-  risk: string;
-  recommendation: string;
-  confidence: number;
-}
-
-export interface RiskReport {
-  contract_id: string;
-  contract_filename: string;
-  summary: string;
-  findings: Finding[];
-  coverage: Record<string, boolean>;
-  missing_required_clauses: ClauseType[];
-  num_high: number;
-  num_medium: number;
-  num_low: number;
-}
 
