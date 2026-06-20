@@ -75,7 +75,6 @@ flowchart TD
     B -- "PDF" --> D[PyMuPDF text extraction]
     C --> F[Clause Extraction via LLM]
     D --> F
-    E --> F
     F --> G[Validate Clause Types & Offset Correction]
     G --> H[Sentence Transformers Embedding<br/>all-MiniLM-L6-v2 · 384-dims]
     H --> I[Index Contract Metadata in Elasticsearch]
