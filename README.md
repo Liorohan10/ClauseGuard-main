@@ -73,7 +73,6 @@ flowchart TD
     A[Upload Contract File<br/>.pdf, .txt] --> B{File Type?}
     B -- "Text" --> C[Decode UTF-8]
     B -- "PDF" --> D[PyMuPDF text extraction]
-    B -- "Image / Scanned PDF" --> E[OCR via Vision Model Fallback]
     C --> F[Clause Extraction via LLM]
     D --> F
     E --> F
